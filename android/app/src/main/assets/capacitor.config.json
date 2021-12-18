@@ -1,0 +1,6 @@
+{
+	"appId": "fyi.meld.picketfence",
+	"appName": "picketfence",
+	"webDir": "dist",
+	"bundledWebRuntime": false
+}

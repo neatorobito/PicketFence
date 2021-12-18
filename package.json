@@ -10,7 +10,10 @@
   "dependencies": {
     "@capacitor/android": "^3.3.3",
     "@capacitor/core": "^3.3.3",
+    "@capacitor/device": "^1.1.1",
+    "@capacitor/toast": "^1.0.6",
     "core-js": "^3.6.5",
+    "perimeter": "file:../perimeter",
     "vue": "^3.0.0"
   },
   "devDependencies": {
