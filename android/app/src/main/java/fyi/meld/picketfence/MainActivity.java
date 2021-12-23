@@ -23,10 +23,9 @@ import fyi.meld.perimeter.PerimeterPlugin;
 
 public class MainActivity extends BridgeActivity {
 
-    private PerimeterPlugin perimeter;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
+
 }

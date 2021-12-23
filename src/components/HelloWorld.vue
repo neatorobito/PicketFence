@@ -7,13 +7,14 @@
       <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
     </p>
     <h3>Installed CLI Plugins</h3>
-    <button @click="requestPerms()">Request Permissions</button>
+    <button class="btn" @click="requestPerms()">Request Permissions</button>
+    <button class="btn" @click="addNewFence()">Add Fence</button>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { Perimeter, PermissionStatus } from 'perimeter';
+import { Perimeter, Fence, TransitionType, PermissionStatus } from 'perimeter';
 
 export default defineComponent({
   name: 'HelloWorld',
@@ -21,7 +22,9 @@ export default defineComponent({
     msg: String,
   },
   data() {
-    "world"
+    return {
+      activeFences: Array<Fence>()
+    }
   },
   methods: {
     async logPerms(perms: PermissionStatus) : Promise<void> {
@@ -41,6 +44,30 @@ export default defineComponent({
       if (currentStatus.background != "granted") {
         currentStatus = await Perimeter.requestBackgroundPermissions();
         this.logPerms(currentStatus);
+      }
+    },
+
+    async addNewFence() : Promise<void> {
+
+      let payload = "dooterino burgino";
+      let newFence : Fence = {
+        fenceName : "Mark's Apartment",
+        fenceId : '123idguy',
+        interests: payload,
+        lat : 47.598270,
+        lng : -122.302560,
+        radius : 100,
+        expires : 5 * 60000,
+        transitionType : 0
+      };
+
+      try {
+        Perimeter.addFence(newFence);
+        this.activeFences.push(newFence);
+      }
+      catch(e) {
+        "We were able to catch the reject call."
+        console.log(e);
       }
     }
   },

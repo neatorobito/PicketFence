@@ -64,4 +64,11 @@ public class MyGeofenceReceiver extends PerimeterReceiver {
 
         Log.d("MyReceiver", exitMessage);
     }
+
+    @Override
+    public void onError(int errorCode, String errorMessage) {
+        JSObject errorInfo = new JSObject();
+        errorInfo.put("message", errorMessage);
+        errorInfo.put("code", errorCode);
+    }
 }
