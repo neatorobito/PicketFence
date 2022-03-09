@@ -11,9 +11,10 @@
     "@capacitor/android": "^3.3.3",
     "@capacitor/core": "^3.3.3",
     "@capacitor/device": "^1.1.1",
+    "@capacitor/ios": "^3.3.3",
     "@capacitor/toast": "^1.0.6",
     "core-js": "^3.6.5",
-    "perimeter": "file:../perimeter",
+    "perimeter": "file:../Perimeter",
     "vue": "^3.0.0"
   },
   "devDependencies": {
