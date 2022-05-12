@@ -1,49 +1,64 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <button class="btn" @click="requestPerms()">Request Permissions</button>
-    <button class="btn" @click="addNewFence()">Add Fence</button>
+  <div class="container">
+    <div class="columns">
+      <div class="column pb-2" style="display: flex; flex-direction: column; align-items: flex-start;">
+          <h1 class="my-2">PicketFence</h1>
+          <p style="margin: 0;" >Simple and solid cross platform geofencing for Capacitor</p>
+          <button class="btn mt-2" @click="requestPerms()">Request Permissions</button>
+      </div>
+    </div>
+    <div class="columns">
+      <div class="column col-6">
+        <div id="map"></div>
+          <div class="columns">
+            <div class="pt-2 column" style="display: flex; justify-content: space-between;">
+              <button class="btn" @click="addNewFence()">Add Fence</button>
+              <button class="btn" @click="removeAllFences()">Remove All Fences</button>
+            </div>
+          </div>
+      </div>
+    </div>
+    <div class="columns">
+      <div class="column col-6">
+        <h2>Overview</h2>
+        <h4>Subheading</h4>
+        <h4>Subheading</h4>
+      </div>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { Perimeter, Fence, TransitionType, PermissionStatus } from 'perimeter';
+import { Perimeter, Fence, TransitionType, LocationPermissionStatus } from '@meld/perimeter';
 
 export default defineComponent({
   name: 'HelloWorld',
   props: {
-    msg: String,
-  },
+    },
   data() {
     return {
-      activeFences: Array<Fence>()
+      activeFences: Array<Fence>(),
+      permStatus: new LocationPermissionStatus(),
+      tokenID: "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IkpMVE0zTTIyQ0oifQ.eyJpc3MiOiJENTRGOUoyOTNTIiwiaWF0IjoxNjUyMTI3ODkwLCJleHAiOjE2NzI2MTc2MDB9.0R6_G3uGOUtC_X4KUi7apj4nxLdFMjpFgFpgznOm8r_175h8FDlwAwrrt90E_kEeq0_He98gnFMxbxHcqR5mqw",
     }
   },
   methods: {
-    async logPerms(perms: PermissionStatus) : Promise<void> {
+    async logPerms(perms: LocationPermissionStatus) : Promise<void> {
       console.log(`Foreground result: ${perms.foreground}`);
       console.log(`Background result: ${perms.background}`);
     },
 
     async requestPerms() : Promise<void> {
-      let currentStatus = await Perimeter.checkPermissions();
+      this.permStatus = await Perimeter.checkPermissions();
 
-      if(currentStatus.foreground != "granted")
+      if(this.permStatus.foreground != "granted")
       {
-        currentStatus = await Perimeter.requestForegroundPermissions();
-        this.logPerms(currentStatus);
+        this.permStatus = await Perimeter.requestForegroundPermissions();
       }
 
-      if (currentStatus.background != "granted") {
-        currentStatus = await Perimeter.requestBackgroundPermissions();
-        this.logPerms(currentStatus);
+      if (this.permStatus.background != "granted") {
+        this.permStatus = await Perimeter.requestBackgroundPermissions();
       }
     },
 
@@ -51,14 +66,14 @@ export default defineComponent({
 
       let payload = "dooterino burgino";
       let newFence : Fence = {
-        fenceName : "Mark's Apartment",
-        fenceId : '123idguy',
+        name : "Mark's Apartment",
+        uid : '123idguy',
         interests: payload,
         lat : 47.598270,
         lng : -122.302560,
         radius : 100,
         expires : 5 * 60000,
-        transitionType : 0
+        monitor : TransitionType.Enter
       };
 
       try {
@@ -69,8 +84,24 @@ export default defineComponent({
         "We were able to catch the reject call."
         console.log(e);
       }
+    },
+
+    async removeOldFence(uid: string) : Promise<void> {
+      try {
+        Perimeter.removeFence({ fenceUID: uid });
+        this.activeFences = this.activeFences.filter(fence => fence.uid != uid);
+      }
+      catch(e) {
+        "We were able to catch the reject call."
+        console.log(e);
+      }
+    },
+    
+    removeAllFences() {
+      Perimeter.removeAllFences();
     }
   },
+  
   async mounted() : Promise<void> {
     console.log("Welcome");
     let currentStatus = await Perimeter.checkPermissions();
@@ -94,5 +125,9 @@ li {
 }
 a {
   color: #42b983;
+}
+#map { 
+  width: 100%;
+  height: max(30vh, 300px);
 }
 </style>

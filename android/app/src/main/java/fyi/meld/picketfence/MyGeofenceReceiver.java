@@ -16,9 +16,9 @@ public class MyGeofenceReceiver extends PerimeterReceiver {
 
         if(triggeredJSFences.size() == 1)
         {
-            JSObject fence = triggeredJSFences.get(0);
-            String fenceName = "Looks like you're near " + fence.getString("fenceName");
-            String extraData = fence.getString("interests");
+            JSObject event = triggeredJSFences.get(0);
+            String fenceName = "Looks like you're near " + event.fence.getString("name");
+            String extraData = event.fence.getString("interests");
             entranceMessage = "Be sure to check out " + extraData + " near " + fenceName;
         }
         else if(triggeredJSFences.size() > 1)
@@ -27,7 +27,7 @@ public class MyGeofenceReceiver extends PerimeterReceiver {
 
             for(JSObject triggeredFence : triggeredJSFences)
             {
-                listOfFences += triggeredFence.getString("fenceName") + ",";
+                listOfFences += triggeredFence.getString("name") + ",";
             }
 
             entranceMessage = "We're reminding you near " + listOfFences + ". There's lots going on. Tap to find out more.";
@@ -44,9 +44,9 @@ public class MyGeofenceReceiver extends PerimeterReceiver {
 
         if(triggeredJSFences.size() == 1)
         {
-            JSObject fence = (JSObject) triggeredJSFences.get(0);
+            JSObject event = (JSObject) triggeredJSFences.get(0);
             //TODO Refactor : These strings should be defined in Constants.
-            exitMessage = "Looks like you've left " + fence.getString("fenceName");
+            exitMessage = "Looks like you've left " + event.fence.getString("name");
             exitMessage += "!";
         }
         else if(triggeredJSFences.size() > 1)
@@ -54,9 +54,9 @@ public class MyGeofenceReceiver extends PerimeterReceiver {
             exitMessage = "Looks like you're no longer near a few different buildings: ";
             String listOfFences = "";
 
-            for(JSObject triggered : triggeredJSFences)
+            for(JSObject event : triggeredJSFences)
             {
-                listOfFences += triggered.getString("fenceName") + ",";
+                listOfFences += event.fence.getString("name") + ",";
             }
 
             exitMessage += (" at " + listOfFences + ".");

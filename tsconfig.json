@@ -11,12 +11,14 @@
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
     "baseUrl": ".",
+    "allowJs": true,
+    "noImplicitAny": false,
     "types": [
       "webpack-env"
     ],
     "paths": {
       "@/*": [
-        "src/*"
+        "src/*", "mapkit.d.ts"
       ]
     },
     "lib": [

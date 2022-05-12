@@ -8,7 +8,7 @@
 		"classpath": "com.capacitorjs.plugins.toast.ToastPlugin"
 	},
 	{
-		"pkg": "perimeter",
+		"pkg": "@meld/perimeter",
 		"classpath": "fyi.meld.perimeter.PerimeterPlugin"
 	}
 ]
