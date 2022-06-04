@@ -72,7 +72,6 @@ export default defineComponent({
         lat : 47.598270,
         lng : -122.302560,
         radius : 100,
-        expires : 5 * 60000,
         monitor : TransitionType.Enter
       };
 
