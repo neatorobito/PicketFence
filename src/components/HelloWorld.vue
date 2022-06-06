@@ -105,6 +105,11 @@ export default defineComponent({
     console.log("Welcome");
     let currentStatus = await Perimeter.checkPermissions();
     this.logPerms(currentStatus);
+
+    Perimeter.addListener("FenceEvent", (fenceEvent) => { 
+      console.log(fenceEvent.transitionType) 
+    });
+
   }
 });
 </script>
