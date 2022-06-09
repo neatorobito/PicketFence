@@ -68,7 +68,7 @@ export default defineComponent({
       let newFence : Fence = {
         name : "Mark's Apartment",
         uid : '123idguy',
-        interests: payload,
+        payload: payload,
         lat : 47.598270,
         lng : -122.302560,
         radius : 100,
