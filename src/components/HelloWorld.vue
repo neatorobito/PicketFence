@@ -64,14 +64,15 @@ export default defineComponent({
 
     async addNewFence() : Promise<void> {
 
-      let payload = "dooterino burgino";
+      let extraData = "dooterino burgino";
+
       let newFence : Fence = {
         name : "Mark's Apartment",
         uid : '123idguy',
-        payload: payload,
-        lat : 47.598270,
-        lng : -122.302560,
-        radius : 100,
+        payload: extraData,
+        lat : 47.613061,
+        lng : -122.3155015,
+        radius : 200,
         monitor : TransitionType.Enter
       };
 

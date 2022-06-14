@@ -16,12 +16,6 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <receiver
-            android:name=".MyGeofenceReceiver"
-            android:enabled="true"
-            android:exported="false">
-        </receiver>
-
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
             android:name="fyi.meld.picketfence.MainActivity"

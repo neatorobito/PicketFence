@@ -25,7 +25,6 @@ public class MyGeofenceReceiver extends PerimeterReceiver {
     private NotificationManager notificationManager;
     private NotificationChannel notificationChannel;
 
-    @Override
     public void onEntrance(Context context, ArrayList<JSObject> triggeredJSFences, long triggerTime) {
 
         String entranceMessage = "";
@@ -34,7 +33,7 @@ public class MyGeofenceReceiver extends PerimeterReceiver {
         {
             JSObject fence = triggeredJSFences.get(0);
             String fenceName = fence.getString("name");
-            String extraData = fence.getString("interests");
+            String extraData = fence.getString("payload");
             entranceMessage = "Be sure to check out " + extraData + " near " + fenceName;
         }
         else if(triggeredJSFences.size() > 1)
@@ -55,7 +54,6 @@ public class MyGeofenceReceiver extends PerimeterReceiver {
 
     }
 
-    @Override
     public void onExit(Context context, ArrayList<JSObject> triggeredJSFences, long triggerTime) {
 
         String exitMessage = "";
@@ -84,7 +82,6 @@ public class MyGeofenceReceiver extends PerimeterReceiver {
         Log.d("MyReceiver", exitMessage);
     }
 
-    @Override
     public void onError(Context context, int errorCode, String errorMessage) {
         JSObject errorInfo = new JSObject();
         errorInfo.put("message", errorMessage);
