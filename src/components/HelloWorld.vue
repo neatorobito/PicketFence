@@ -70,8 +70,8 @@ export default defineComponent({
         name : "Mark's Apartment",
         uid : '123idguy',
         payload: extraData,
-        lat : 47.613061,
-        lng : -122.3155015,
+        lat : 47.5982517,
+        lng : -122.302551,
         radius : 200,
         monitor : TransitionType.Enter
       };

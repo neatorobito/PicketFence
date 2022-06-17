@@ -9,4 +9,4 @@ include ':capacitor-toast'
 project(':capacitor-toast').projectDir = new File('../node_modules/@capacitor/toast/android')
 
 include ':meld-perimeter'
-project(':meld-perimeter').projectDir = new File('../../Perimeter/android')
+project(':meld-perimeter').projectDir = new File('../../perimeter/android')
