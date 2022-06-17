@@ -25,7 +25,26 @@ public class MyGeofenceReceiver extends PerimeterReceiver {
     private NotificationManager notificationManager;
     private NotificationChannel notificationChannel;
 
-    public void onEntrance(Context context, ArrayList<JSObject> triggeredJSFences, long triggerTime) {
+    @Override
+    public void onFenceTriggered(Context context, ArrayList<JSObject> triggeredJSFences, long triggerTime, int transitionType) {
+        if(transitionType == 1)
+        {
+            handleEntrance(context, triggeredJSFences, triggerTime);
+        }
+        else
+        {
+            handleExit(context, triggeredJSFences, triggerTime);
+        }
+    }
+
+    @Override
+    public void onError(Context context, int errorCode, String errorMessage) {
+        JSObject errorInfo = new JSObject();
+        errorInfo.put("message", errorMessage);
+        errorInfo.put("code", errorCode);
+    }
+
+    public void handleEntrance(Context context, ArrayList<JSObject> triggeredJSFences, long triggerTime) {
 
         String entranceMessage = "";
 
@@ -54,7 +73,7 @@ public class MyGeofenceReceiver extends PerimeterReceiver {
 
     }
 
-    public void onExit(Context context, ArrayList<JSObject> triggeredJSFences, long triggerTime) {
+    public void handleExit(Context context, ArrayList<JSObject> triggeredJSFences, long triggerTime) {
 
         String exitMessage = "";
 
@@ -80,12 +99,6 @@ public class MyGeofenceReceiver extends PerimeterReceiver {
         Notification entranceNotif = getExitNotification(context, triggeredJSFences, triggerTime);
         sendFenceEventNotification(context, entranceNotif);
         Log.d("MyReceiver", exitMessage);
-    }
-
-    public void onError(Context context, int errorCode, String errorMessage) {
-        JSObject errorInfo = new JSObject();
-        errorInfo.put("message", errorMessage);
-        errorInfo.put("code", errorCode);
     }
 
     Notification getEntranceNotification(Context context, ArrayList<JSObject> triggeredJSFences, long triggerTime)

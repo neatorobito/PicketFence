@@ -30,7 +30,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { Perimeter, Fence, TransitionType, LocationPermissionStatus } from '@meld/perimeter';
+import { Perimeter, Fence, FenceEvent, PerimeterEvent, TransitionType, LocationPermissionStatus } from '@meld/perimeter';
 
 export default defineComponent({
   name: 'HelloWorld',
@@ -103,12 +103,11 @@ export default defineComponent({
   },
   
   async mounted() : Promise<void> {
-    console.log("Welcome");
     let currentStatus = await Perimeter.checkPermissions();
     this.logPerms(currentStatus);
 
-    Perimeter.addListener("FenceEvent", (fenceEvent) => { 
-      console.log(fenceEvent.transitionType) 
+    Perimeter.addListener("FenceEvent", (data: PerimeterEvent) => { 
+      console.log((data as FenceEvent).fences[0].name);
     });
 
   }
