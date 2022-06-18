@@ -62,7 +62,7 @@ export default defineComponent({
       }
     },
 
-    async addNewFence() : Promise<void> {
+    addNewFence() {
 
       let extraData = "dooterino burgino";
 
@@ -76,25 +76,22 @@ export default defineComponent({
         monitor : TransitionType.Enter
       };
 
-      try {
-        Perimeter.addFence(newFence);
+      Perimeter.addFence(newFence).then(() => {
         this.activeFences.push(newFence);
-      }
-      catch(e) {
-        "We were able to catch the reject call."
+      })
+      .catch((e) => {
         console.log(e);
-      }
+      });
+
     },
 
-    async removeOldFence(uid: string) : Promise<void> {
-      try {
-        Perimeter.removeFence({ fenceUID: uid });
+    removeOldFence(uid: string) {
+      Perimeter.removeFence({ fenceUID : uid}).then(() => {
         this.activeFences = this.activeFences.filter(fence => fence.uid != uid);
-      }
-      catch(e) {
-        "We were able to catch the reject call."
+      })
+      .catch((e) => {
         console.log(e);
-      }
+      });
     },
     
     removeAllFences() {
