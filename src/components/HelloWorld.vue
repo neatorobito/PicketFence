@@ -1,36 +1,33 @@
 <template>
-  <div class="container">
-    <div class="columns">
-      <div class="column pb-2" style="display: flex; flex-direction: column; align-items: flex-start;">
-          <h1 class="my-2">PicketFence</h1>
-          <p style="margin: 0;" >Simple and solid cross platform geofencing for Capacitor</p>
-          <button class="btn mt-2" @click="requestPerms()">Request Permissions</button>
+  <div class="flexbox col">
+    <div class="container" style="padding: 0;">
+      <div id="mapkit_js"></div>
+      <div class="container" style="height: auto; z-index: 1; position: absolute; left: calc(50% - 50vw); top: 0; margin-top: 2rem;">
+        <input type="text" id="input-text" placeholder="Find an address" />
       </div>
     </div>
-    <div class="columns">
-      <div class="column col-6">
-        <div id="map"></div>
-          <div class="columns">
-            <div class="pt-2 column" style="display: flex; justify-content: space-between;">
-              <button class="btn" @click="addNewFence()">Add Fence</button>
-              <button class="btn" @click="removeAllFences()">Remove All Fences</button>
-            </div>
-          </div>
+    <div class="container">
+
+
+      <h1 style="margin-top: 0.5rem;">Welcome to PicketFence</h1>
+      <p style=";" >This sample app demonstrates basic geofencing capabilities with Perimeter.</p>
+
+      <div class="flexbox col">
+        <p class="text-align-center">To get started, tap the button below. </p>
+        <button class="centered btn button-primary mt-2" v-if="hasCorrectPermissions" @click="requestPerms()">Request Permissions</button>
       </div>
+
     </div>
-    <div class="columns">
-      <div class="column col-6">
-        <h2>Overview</h2>
-        <h4>Subheading</h4>
-        <h4>Subheading</h4>
-      </div>
-    </div>
+    <i id="global_status" class="color-info text-align-center position-bottom margin-top-s">Status: Waiting for permissions</i>
   </div>
+
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { Perimeter, Fence, FenceEvent, PerimeterEvent, TransitionType, LocationPermissionStatus } from '@meld/perimeter';
+import { createMapkit, mapkit } from 'vue-mapkit'
+import { Geolocation } from '@capacitor/geolocation';
 
 export default defineComponent({
   name: 'HelloWorld',
@@ -38,10 +35,17 @@ export default defineComponent({
     },
   data() {
     return {
+      map: null,
       activeFences: Array<Fence>(),
       permStatus: new LocationPermissionStatus(),
-      tokenID: "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IkpMVE0zTTIyQ0oifQ.eyJpc3MiOiJENTRGOUoyOTNTIiwiaWF0IjoxNjUyMTI3ODkwLCJleHAiOjE2NzI2MTc2MDB9.0R6_G3uGOUtC_X4KUi7apj4nxLdFMjpFgFpgznOm8r_175h8FDlwAwrrt90E_kEeq0_He98gnFMxbxHcqR5mqw",
     }
+  },
+  computed: {
+
+    hasCorrectPermissions() {
+      return !(this.$data['permStatus'].background === 'granted' && this.$data['permStatus'].foreground === 'granted');
+    },
+
   },
   methods: {
     async logPerms(perms: LocationPermissionStatus) : Promise<void> {
@@ -100,13 +104,16 @@ export default defineComponent({
   },
   
   async mounted() : Promise<void> {
-    let currentStatus = await Perimeter.checkPermissions();
-    this.logPerms(currentStatus);
+    // let currentStatus = await Perimeter.checkPermissions();
+    // this.logPerms(currentStatus);
 
-    Perimeter.addListener("FenceEvent", (data: PerimeterEvent) => { 
-      console.log((data as FenceEvent).fences[0].name);
-    });
+    // Perimeter.addListener("FenceEvent", (data: PerimeterEvent) => { 
+    //   console.log((data as FenceEvent).fences[0].name);
+    // });
 
+    const coordinates = await Geolocation.getCurrentPosition();
+    this.map = await createMapkit("mapkit_js", { language: 'en' });
+    console.log(coordinates)    
   }
 });
 </script>
@@ -127,8 +134,8 @@ li {
 a {
   color: #42b983;
 }
-#map { 
+#mapkit_js { 
   width: 100%;
-  height: max(30vh, 300px);
+  height: max(55vh, 500px);
 }
 </style>

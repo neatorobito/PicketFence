@@ -1,0 +1,50 @@
+/**************** CONTAINERS AND LAYOUT HELPERS *****************/
+
+.flexbox {
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+}
+
+.flexbox.row {
+  flex-direction: row;
+}
+
+.flexbox.col {
+  flex-direction: column;
+}
+
+.flexbox .centered {
+  margin: auto;
+}
+
+.flexbox.center-items {
+  -webkit-box-align: center;
+  -moz-box-align: center;
+  -ms-flex-align: center;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -moz-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+}
+
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.my-auto {
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.mt-auto {
+  margin-top: auto;
+}
+
+.mb-auto {
+  margin-bottom: auto;
+}
