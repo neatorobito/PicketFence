@@ -1,24 +1,18 @@
 <template>
-  <div class="flexbox col">
+  <div class="flexbox col" style="height: 100%;">
     <div class="container" style="padding: 0;">
       <div id="mapkit_js"></div>
-      <div class="container" style="height: auto; z-index: 1; position: absolute; left: calc(50% - 50vw); top: 0; margin-top: 2rem;">
+      <div class="container" style="height: auto; z-index: 1; position: absolute; left: calc(50% - 50vw); top: 0; margin-top: 3rem;">
         <input type="text" id="input-text" placeholder="Find an address" />
       </div>
     </div>
-    <div class="container">
-
-
-      <h1 style="margin-top: 0.5rem;">Welcome to PicketFence</h1>
-      <p style=";" >This sample app demonstrates basic geofencing capabilities with Perimeter.</p>
-
-      <div class="flexbox col">
-        <p class="text-align-center">To get started, tap the button below. </p>
-        <button class="centered btn button-primary mt-2" v-if="hasCorrectPermissions" @click="requestPerms()">Request Permissions</button>
-      </div>
-
+    <div class="container flexbox col">
+        <h1 style="margin-top: 0.5rem;">PicketFence</h1>
+        <p>This sample app demonstrates basic geofencing capabilities with Perimeter.</p>
+        <p v-if="APP_STATE">To get started, tap the button below. </p>
+        <button class="btn button-primary" v-if="APP_STATE === STATES.NEED_PERMISSION" @click="requestPerms()">Request Permissions</button>
     </div>
-    <i id="global_status" class="color-info text-align-center position-bottom margin-top-s">Status: Waiting for permissions</i>
+    <i id="global_status" v-if="APP_STATE" class="color-info text-align-center position-bottom padding-s">Status: {{ APP_STATE }}</i>
   </div>
 
 </template>
@@ -36,6 +30,12 @@ export default defineComponent({
   data() {
     return {
       map: null,
+      STATES: { 
+        'NEED_PERMISSION' : 'Waiting for permissions',
+        'PERMISSIONS_GRANTED' : 'Permissions granted',
+        'PLATFORM_ERROR' : 'An error occured in the underlying implementation. Details: '
+      },
+      APP_STATE: '',
       activeFences: Array<Fence>(),
       permStatus: new LocationPermissionStatus(),
     }
@@ -43,7 +43,7 @@ export default defineComponent({
   computed: {
 
     hasCorrectPermissions() {
-      return !(this.$data['permStatus'].background === 'granted' && this.$data['permStatus'].foreground === 'granted');
+      return (this.$data['permStatus'].background === 'granted' && this.$data['permStatus'].foreground === 'granted');
     },
 
   },
@@ -102,18 +102,29 @@ export default defineComponent({
       Perimeter.removeAllFences();
     }
   },
+
+  async created() {
+    let currentStatus = await Perimeter.checkPermissions();
+    this.logPerms(currentStatus);
+
+    Perimeter.addListener("FenceEvent", (data: PerimeterEvent) => { 
+      console.log((data as FenceEvent).fences[0].name);
+    });
+
+    if(this.hasCorrectPermissions)
+    {
+      this.APP_STATE = this.STATES.PERMISSIONS_GRANTED
+    }
+    else {
+      this.APP_STATE = this.STATES.NEED_PERMISSION;
+    }
+  },
   
-  async mounted() : Promise<void> {
-    // let currentStatus = await Perimeter.checkPermissions();
-    // this.logPerms(currentStatus);
-
-    // Perimeter.addListener("FenceEvent", (data: PerimeterEvent) => { 
-    //   console.log((data as FenceEvent).fences[0].name);
-    // });
-
-    const coordinates = await Geolocation.getCurrentPosition();
+  async mounted() {
     this.map = await createMapkit("mapkit_js", { language: 'en' });
-    console.log(coordinates)    
+    
+    // const coordinates = await Geolocation.getCurrentPosition();
+    // console.log(coordinates)    
   }
 });
 </script>
