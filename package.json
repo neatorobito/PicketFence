@@ -16,8 +16,7 @@
     "@capacitor/toast": "^1.0.6",
     "@meld/perimeter": "file:../perimeter",
     "core-js": "^3.6.5",
-    "vue": "^3.0.0",
-    "vue-mapkit": "^0.0.4"
+    "vue": "^3.0.0"
   },
   "devDependencies": {
     "@capacitor/cli": "^3.3.3",
