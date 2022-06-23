@@ -121,7 +121,7 @@ export default defineComponent({
   },
   
   async mounted() {
-    this.map = await createMapkit("mapkit_js", { language: 'en' });
+    // this.map = await createMapkit("mapkit_js", { language: 'en' });
     
     // const coordinates = await Geolocation.getCurrentPosition();
     // console.log(coordinates)    
