@@ -20,8 +20,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { Perimeter, Fence, FenceEvent, PerimeterEvent, TransitionType, LocationPermissionStatus } from '@meld/perimeter';
-import { createMapkit, mapkit } from 'vue-mapkit'
-import { Geolocation } from '@capacitor/geolocation';
+import { Geolocation, Position } from '@capacitor/geolocation';
 
 export default defineComponent({
   name: 'HelloWorld',
@@ -29,7 +28,8 @@ export default defineComponent({
     },
   data() {
     return {
-      map: null,
+      lastPos: null as Position | null,
+      MAPKIT_TOKEN: "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IkpMVE0zTTIyQ0oifQ.eyJpc3MiOiJENTRGOUoyOTNTIiwiaWF0IjoxNjUyMTI3ODkwLCJleHAiOjE2NzI2MTc2MDB9.0R6_G3uGOUtC_X4KUi7apj4nxLdFMjpFgFpgznOm8r_175h8FDlwAwrrt90E_kEeq0_He98gnFMxbxHcqR5mqw",
       STATES: { 
         'NEED_PERMISSION' : 'Waiting for permissions',
         'PERMISSIONS_GRANTED' : 'Permissions granted',
@@ -100,31 +100,65 @@ export default defineComponent({
     
     removeAllFences() {
       Perimeter.removeAllFences();
+    },
+
+    async handlePermissions() {
+      this.permStatus = await Perimeter.checkPermissions();
+      this.logPerms(this.permStatus);
+
+      Perimeter.addListener("FenceEvent", (data: PerimeterEvent) => { 
+        console.log((data as FenceEvent).fences[0].name);
+      });
+    },
+
+    async initMap() {
+      // const self = this;
+      // let map: mapkit.Map | null = null;
+      this.lastPos = await Geolocation.getCurrentPosition();
+
+      // mapkit.addEventListener('configuration-change', (configEvent) => {
+      //   if(configEvent.status === 'Initialized')
+      //   {
+      //       map = new mapkit.Map("mapkit_js", {
+      //         'isZoomEnabled': true, 
+      //         'showsCompass': mapkit.FeatureVisibility.Visible,
+      //         'showsZoomControl': true,
+      //         'showsUserLocationControl': true,
+      //         });
+      //       map.setCenterAnimated(
+      //       new mapkit.Coordinate(
+      //         this.lastPos!.coords.latitude,
+      //         this.lastPos!.coords.longitude));
+      //   }
+      // });
+
+      // mapkit.init({
+      //   authorizationCallback: function(done: (jwt: string) => void) {
+      //     // callback functionality goes here
+      //     done(self.MAPKIT_TOKEN);
+      //   },
+      //   language: "en"
+      // });
     }
   },
 
   async created() {
-    let currentStatus = await Perimeter.checkPermissions();
-    this.logPerms(currentStatus);
+    this.handlePermissions();
+  },
+  
+  async mounted() {
 
-    Perimeter.addListener("FenceEvent", (data: PerimeterEvent) => { 
-      console.log((data as FenceEvent).fences[0].name);
-    });
+    this.initMap();
 
     if(this.hasCorrectPermissions)
     {
       this.APP_STATE = this.STATES.PERMISSIONS_GRANTED
     }
-    else {
+    else
+    {
       this.APP_STATE = this.STATES.NEED_PERMISSION;
     }
-  },
-  
-  async mounted() {
-    // this.map = await createMapkit("mapkit_js", { language: 'en' });
-    
-    // const coordinates = await Geolocation.getCurrentPosition();
-    // console.log(coordinates)    
+
   }
 });
 </script>
