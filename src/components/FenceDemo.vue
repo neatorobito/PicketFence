@@ -23,7 +23,7 @@ import { Perimeter, Fence, FenceEvent, PerimeterEvent, TransitionType, LocationP
 import { Geolocation, Position } from '@capacitor/geolocation';
 
 export default defineComponent({
-  name: 'HelloWorld',
+  name: 'FenceDemo',
   props: {
     },
   data() {
@@ -132,7 +132,7 @@ export default defineComponent({
       //   }
       // });
 
-      // mapkit.init({
+      // blah.init({
       //   authorizationCallback: function(done: (jwt: string) => void) {
       //     // callback functionality goes here
       //     done(self.MAPKIT_TOKEN);
