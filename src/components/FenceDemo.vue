@@ -1,8 +1,12 @@
 <template>
   <div class="flexbox col" style="height: 100%;">
     <div class="container" style="padding: 0;">
-      <div id="mapkit_js"></div>
-      <div class="container" style="height: auto; z-index: 1; position: absolute; left: calc(50% - 50vw); top: 0; margin-top: 3rem;">
+      <l-map id="fence-map" :center="mapCenter" :zoom="mapZoom" :zoomAnimation=true :options="{zoomControl: false}" style="z-index: 0">
+        <l-tile-layer :url="TILE_LAYER" :attribution="MAPS_ATTRIBUTION"></l-tile-layer>
+        <l-marker :lat-lng="presentLocat" :visible="shouldShowUserMarker"></l-marker>
+        <l-control-zoom position="bottomleft"></l-control-zoom>
+      </l-map>
+      <div class="container" style="height: auto; z-index: 1; position: absolute; left: calc(50% - 50vw); top: 0; margin-top: 2rem;">
         <input type="text" id="input-text" placeholder="Find an address" />
       </div>
     </div>
@@ -18,57 +22,85 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
-import { Perimeter, Fence, FenceEvent, PerimeterEvent, TransitionType, LocationPermissionStatus } from '@meld/perimeter';
-import { Geolocation, Position } from '@capacitor/geolocation';
+import { defineComponent } from 'vue'
+import { Perimeter, Fence, FenceEvent, PerimeterEvent, TransitionType, LocationPermissionStatus } from '@meld/perimeter'
+import { Geolocation, Position } from '@capacitor/geolocation'
+
+import "leaflet/dist/leaflet.css"
+import { LMap, LTileLayer, LMarker, LControlZoom } from "@vue-leaflet/vue-leaflet"
 
 export default defineComponent({
   name: 'FenceDemo',
-  props: {
-    },
-  data() {
+  components: {
+    LMap,
+    LTileLayer,
+    LMarker,
+    LControlZoom
+  },
+  data: () => {
     return {
-      lastPos: null as Position | null,
-      MAPKIT_TOKEN: "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IkpMVE0zTTIyQ0oifQ.eyJpc3MiOiJENTRGOUoyOTNTIiwiaWF0IjoxNjUyMTI3ODkwLCJleHAiOjE2NzI2MTc2MDB9.0R6_G3uGOUtC_X4KUi7apj4nxLdFMjpFgFpgznOm8r_175h8FDlwAwrrt90E_kEeq0_He98gnFMxbxHcqR5mqw",
+      lastLocat: null as Position | null,
+      TILE_LAYER: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+      MAPS_ATTRIBUTION: `&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>`,
       STATES: { 
         'NEED_PERMISSION' : 'Waiting for permissions',
         'PERMISSIONS_GRANTED' : 'Permissions granted',
         'PLATFORM_ERROR' : 'An error occured in the underlying implementation. Details: '
       },
+      mapZoom: 3,
+      mapCenter: [47.6053581, -122.336566],
+      shouldShowUserMarker: false,
       APP_STATE: '',
       activeFences: Array<Fence>(),
       permStatus: new LocationPermissionStatus(),
     }
   },
+  watch: {
+    'permStatus' (_updatedPermissions) {
+      if(this.hasCorrectPermissions)
+      {
+        this.configureMap()
+        this.APP_STATE = this.STATES.PERMISSIONS_GRANTED
+      }
+      else
+      {
+        this.APP_STATE = this.STATES.NEED_PERMISSION
+      }
+    }
+  },
   computed: {
 
     hasCorrectPermissions() {
-      return (this.$data['permStatus'].background === 'granted' && this.$data['permStatus'].foreground === 'granted');
+      return (this.$data['permStatus'].background === 'granted' && this.$data['permStatus'].foreground === 'granted')
     },
+
+    presentLocat() {
+      return this.$data.lastLocat === null ? [0,0] : [this.$data.lastLocat.coords.latitude, this.$data.lastLocat.coords.longitude]
+    }
 
   },
   methods: {
     async logPerms(perms: LocationPermissionStatus) : Promise<void> {
-      console.log(`Foreground result: ${perms.foreground}`);
-      console.log(`Background result: ${perms.background}`);
+      console.log(`Foreground result: ${perms.foreground}`)
+      console.log(`Background result: ${perms.background}`)
     },
 
     async requestPerms() : Promise<void> {
-      this.permStatus = await Perimeter.checkPermissions();
+      this.permStatus = await Perimeter.checkPermissions()
 
       if(this.permStatus.foreground != "granted")
       {
-        this.permStatus = await Perimeter.requestForegroundPermissions();
+        this.permStatus = await Perimeter.requestForegroundPermissions()
       }
 
       if (this.permStatus.background != "granted") {
-        this.permStatus = await Perimeter.requestBackgroundPermissions();
+        this.permStatus = await Perimeter.requestBackgroundPermissions()
       }
     },
 
     addNewFence() {
 
-      let extraData = "dooterino burgino";
+      let extraData = "dooterino burgino"
 
       let newFence : Fence = {
         name : "Mark's Apartment",
@@ -78,89 +110,55 @@ export default defineComponent({
         lng : -122.302551,
         radius : 200,
         monitor : TransitionType.Enter
-      };
+      }
 
       Perimeter.addFence(newFence).then(() => {
-        this.activeFences.push(newFence);
+        this.activeFences.push(newFence)
       })
       .catch((e) => {
-        console.log(e);
-      });
+        console.log(e)
+      })
 
     },
 
     removeOldFence(uid: string) {
       Perimeter.removeFence({ fenceUID : uid}).then(() => {
-        this.activeFences = this.activeFences.filter(fence => fence.uid != uid);
+        this.activeFences = this.activeFences.filter(fence => fence.uid != uid)
       })
       .catch((e) => {
-        console.log(e);
-      });
+        console.log(e)
+      })
     },
     
     removeAllFences() {
-      Perimeter.removeAllFences();
+      Perimeter.removeAllFences()
     },
 
     async handlePermissions() {
-      this.permStatus = await Perimeter.checkPermissions();
-      this.logPerms(this.permStatus);
-
-      Perimeter.addListener("FenceEvent", (data: PerimeterEvent) => { 
-        console.log((data as FenceEvent).fences[0].name);
-      });
+      this.permStatus = await Perimeter.checkPermissions()
+      this.logPerms(this.permStatus)
     },
 
-    async initMap() {
-      // const self = this;
-      // let map: mapkit.Map | null = null;
-      this.lastPos = await Geolocation.getCurrentPosition();
-
-      // mapkit.addEventListener('configuration-change', (configEvent) => {
-      //   if(configEvent.status === 'Initialized')
-      //   {
-      //       map = new mapkit.Map("mapkit_js", {
-      //         'isZoomEnabled': true, 
-      //         'showsCompass': mapkit.FeatureVisibility.Visible,
-      //         'showsZoomControl': true,
-      //         'showsUserLocationControl': true,
-      //         });
-      //       map.setCenterAnimated(
-      //       new mapkit.Coordinate(
-      //         this.lastPos!.coords.latitude,
-      //         this.lastPos!.coords.longitude));
-      //   }
-      // });
-
-      // blah.init({
-      //   authorizationCallback: function(done: (jwt: string) => void) {
-      //     // callback functionality goes here
-      //     done(self.MAPKIT_TOKEN);
-      //   },
-      //   language: "en"
-      // });
+    async configureMap() {
+      this.lastLocat = await Geolocation.getCurrentPosition()
+      this.mapCenter = this.presentLocat
+      this.shouldShowUserMarker = true
+      this.mapZoom = 12.5
     }
   },
 
   async created() {
-    this.handlePermissions();
+    this.handlePermissions()
   },
   
   async mounted() {
 
-    this.initMap();
-
-    if(this.hasCorrectPermissions)
-    {
-      this.APP_STATE = this.STATES.PERMISSIONS_GRANTED
-    }
-    else
-    {
-      this.APP_STATE = this.STATES.NEED_PERMISSION;
-    }
+    Perimeter.addListener("FenceEvent", (data: PerimeterEvent) => { 
+      console.log((data as FenceEvent).fences[0].name)
+    })
 
   }
-});
+})
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
@@ -179,8 +177,9 @@ li {
 a {
   color: #42b983;
 }
-#mapkit_js { 
+#fence-map { 
   width: 100%;
   height: max(55vh, 500px);
 }
+
 </style>
