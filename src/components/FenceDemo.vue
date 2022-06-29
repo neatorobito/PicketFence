@@ -13,10 +13,10 @@
     <div class="container flexbox col">
         <h1 style="margin-top: 0.5rem; margin-bottom: 0.5rem;">PicketFence</h1>
         <p>This sample app demonstrates basic geofencing capabilities with Perimeter.</p>
-        <p> {{ infoText }} </p>
-        <button class="btn button-primary" v-if="isActionButtonVisible" @click="actionForButton">{{ actionButtonText }}</button>
+        <p v-if="instructionsText"> {{ instructionsText }} </p>
+        <button class="btn button-primary" v-if="actionButtonText" @click="actionForButton">{{ actionButtonText }}</button>
     </div>
-    <i id="global_status" v-if="APP_STATE" class="color-info text-align-center position-bottom padding-s">Status: {{ APP_STATE }}</i>
+    <i id="global_status" v-if="statusText" class="color-info text-align-center position-bottom padding-s">Status: {{ statusText }}</i>
   </div>
 
 </template>
@@ -26,6 +26,7 @@ import { defineComponent } from 'vue'
 import { Perimeter, Fence, FenceEvent, PerimeterEvent, TransitionType, LocationPermissionStatus } from '@meld/perimeter'
 import { Geolocation, Position } from '@capacitor/geolocation'
 import { SplashScreen } from '@capacitor/splash-screen'
+import { StateData, StateDataResolver, NamedStates } from '../StateConstructs';
 
 import "leaflet/dist/leaflet.css"
 import { LMap, LTileLayer, LMarker, LControlZoom } from "@vue-leaflet/vue-leaflet"
@@ -40,27 +41,16 @@ export default defineComponent({
   },
   data: () => {
     return {
-      APP_STATE: '',
-      APP_STATES: { 
-        'NEED_PERMISSION' : 'Waiting for permissions',
-        'PERMISSIONS_GRANTED' : 'Permissions granted',
-        'NO_FENCES' : 'Ready to go',
-        'NOMINATIM_UNAVAILABLE': 'Geocoding API is not available, please try again later.',
-        'PLATFORM_ERROR' : 'A platform error occured. Details: '
-      },
-      BUTTON_STATES : {
-        'NEED_PERMISSION' : 'Request Permissions',
-        'TRY_AGAIN' : 'Try again'
-      },
+      APP_STATE: NamedStates.BLANK,
       TILE_LAYER: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
       MAPS_ATTRIBUTION: `&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>`,
       NOMINATIM_API: {
         'STATUS': 'https://nominatim.openstreetmap.org/status.php'
       },
-      isActionButtonVisible: false,
       actionForButton: ((payload: MouseEvent) => {}) as ((payload: MouseEvent) => void),
-      actionButtonText: '',
-      infoText: '',
+      actionButtonText: null as string | null,
+      instructionsText: null as string | null,
+      statusText: null as string | null,
       lastLocat: null as Position | null,
       mapZoom: 3,
       mapCenter: [47.6053581, -122.336566],
@@ -74,26 +64,32 @@ export default defineComponent({
       if(this.hasCorrectPermissions)
       {
         this.configureMap()
-        this.APP_STATE = this.APP_STATES.PERMISSIONS_GRANTED
+        this.APP_STATE = NamedStates.READY_FOR_FENCE
       }
       else
       {
-        this.APP_STATE = this.APP_STATES.NEED_PERMISSION
+        this.APP_STATE = NamedStates.NEEDS_PERMISSIONS
       }
     },
 
     'APP_STATE' (newState) {
 
-      this.isActionButtonVisible = false
+      this.actionButtonText = null;
+      this.instructionsText = null;
+      this.statusText = null;
+
+      let newStateData = StateDataResolver[newState] as StateData
+
+      this.actionButtonText = newStateData.actionButtonText
+      this.instructionsText = newStateData.instructionsText
+      this.statusText = newStateData.statusText
 
       switch (newState) {
-        case this.APP_STATES.NEED_PERMISSION: {
-          this.actionButtonText = this.BUTTON_STATES.NEED_PERMISSION
+        case NamedStates.NEEDS_PERMISSIONS: {
           this.actionForButton = this.requestPerms
           break
         }
-        case this.APP_STATES.NOMINATIM_UNAVAILABLE: {
-          this.actionButtonText = this.BUTTON_STATES.TRY_AGAIN
+        case NamedStates.NOMINATIM_UNAVAILABLE: {
           this.actionForButton = this.getNominatimServerStatus
           break
         }
@@ -101,8 +97,6 @@ export default defineComponent({
           break
         }
       }
-
-      this.isActionButtonVisible = true
 
     }
   },
@@ -188,14 +182,16 @@ export default defineComponent({
     async getNominatimServerStatus() { 
       fetch(this.NOMINATIM_API.STATUS).then((r) => {
         if(!(r.status === 200)) {
-          this.APP_STATE = this.APP_STATES.NOMINATIM_UNAVAILABLE
+          this.APP_STATE = NamedStates.NOMINATIM_UNAVAILABLE
+        }
+        else {
+          this.handlePermissions()
         }
       })
     }
   },
 
   async created() {
-    this.handlePermissions()
     await SplashScreen.hide()
   },
   

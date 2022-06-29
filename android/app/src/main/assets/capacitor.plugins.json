@@ -12,10 +12,6 @@
 		"classpath": "com.capacitorjs.plugins.splashscreen.SplashScreenPlugin"
 	},
 	{
-		"pkg": "@capacitor/toast",
-		"classpath": "com.capacitorjs.plugins.toast.ToastPlugin"
-	},
-	{
 		"pkg": "@meld/perimeter",
 		"classpath": "fyi.meld.perimeter.PerimeterPlugin"
 	}

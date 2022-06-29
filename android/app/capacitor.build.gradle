@@ -12,7 +12,6 @@ dependencies {
     implementation project(':capacitor-device')
     implementation project(':capacitor-geolocation')
     implementation project(':capacitor-splash-screen')
-    implementation project(':capacitor-toast')
     implementation project(':meld-perimeter')
 
 }
