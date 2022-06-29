@@ -6,15 +6,15 @@
         <l-marker :lat-lng="presentLocat" :visible="shouldShowUserMarker"></l-marker>
         <l-control-zoom position="bottomleft"></l-control-zoom>
       </l-map>
-      <div class="container" style="height: auto; z-index: 1; position: absolute; left: calc(50% - 50vw); top: 0; margin-top: 2rem;">
+      <div class="container" style="height: auto; z-index: 1; position: absolute; left: calc(50% - 50vw); top: 0; margin-top: 3rem;">
         <input type="text" id="input-text" placeholder="Find an address" />
       </div>
     </div>
     <div class="container flexbox col">
-        <h1 style="margin-top: 0.5rem;">PicketFence</h1>
+        <h1 style="margin-top: 0.5rem; margin-bottom: 0.5rem;">PicketFence</h1>
         <p>This sample app demonstrates basic geofencing capabilities with Perimeter.</p>
-        <p v-if="APP_STATE">To get started, tap the button below. </p>
-        <button class="btn button-primary" v-if="APP_STATE === STATES.NEED_PERMISSION" @click="requestPerms()">Request Permissions</button>
+        <p> {{ infoText }} </p>
+        <button class="btn button-primary" v-if="isActionButtonVisible" @click="actionForButton">{{ actionButtonText }}</button>
     </div>
     <i id="global_status" v-if="APP_STATE" class="color-info text-align-center position-bottom padding-s">Status: {{ APP_STATE }}</i>
   </div>
@@ -25,6 +25,7 @@
 import { defineComponent } from 'vue'
 import { Perimeter, Fence, FenceEvent, PerimeterEvent, TransitionType, LocationPermissionStatus } from '@meld/perimeter'
 import { Geolocation, Position } from '@capacitor/geolocation'
+import { SplashScreen } from '@capacitor/splash-screen'
 
 import "leaflet/dist/leaflet.css"
 import { LMap, LTileLayer, LMarker, LControlZoom } from "@vue-leaflet/vue-leaflet"
@@ -39,18 +40,31 @@ export default defineComponent({
   },
   data: () => {
     return {
-      lastLocat: null as Position | null,
-      TILE_LAYER: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-      MAPS_ATTRIBUTION: `&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>`,
-      STATES: { 
+      APP_STATE: '',
+      APP_STATES: { 
         'NEED_PERMISSION' : 'Waiting for permissions',
         'PERMISSIONS_GRANTED' : 'Permissions granted',
-        'PLATFORM_ERROR' : 'An error occured in the underlying implementation. Details: '
+        'NO_FENCES' : 'Ready to go',
+        'NOMINATIM_UNAVAILABLE': 'Geocoding API is not available, please try again later.',
+        'PLATFORM_ERROR' : 'A platform error occured. Details: '
       },
+      BUTTON_STATES : {
+        'NEED_PERMISSION' : 'Request Permissions',
+        'TRY_AGAIN' : 'Try again'
+      },
+      TILE_LAYER: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+      MAPS_ATTRIBUTION: `&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>`,
+      NOMINATIM_API: {
+        'STATUS': 'https://nominatim.openstreetmap.org/status.php'
+      },
+      isActionButtonVisible: false,
+      actionForButton: ((payload: MouseEvent) => {}) as ((payload: MouseEvent) => void),
+      actionButtonText: '',
+      infoText: '',
+      lastLocat: null as Position | null,
       mapZoom: 3,
       mapCenter: [47.6053581, -122.336566],
       shouldShowUserMarker: false,
-      APP_STATE: '',
       activeFences: Array<Fence>(),
       permStatus: new LocationPermissionStatus(),
     }
@@ -60,14 +74,39 @@ export default defineComponent({
       if(this.hasCorrectPermissions)
       {
         this.configureMap()
-        this.APP_STATE = this.STATES.PERMISSIONS_GRANTED
+        this.APP_STATE = this.APP_STATES.PERMISSIONS_GRANTED
       }
       else
       {
-        this.APP_STATE = this.STATES.NEED_PERMISSION
+        this.APP_STATE = this.APP_STATES.NEED_PERMISSION
       }
+    },
+
+    'APP_STATE' (newState) {
+
+      this.isActionButtonVisible = false
+
+      switch (newState) {
+        case this.APP_STATES.NEED_PERMISSION: {
+          this.actionButtonText = this.BUTTON_STATES.NEED_PERMISSION
+          this.actionForButton = this.requestPerms
+          break
+        }
+        case this.APP_STATES.NOMINATIM_UNAVAILABLE: {
+          this.actionButtonText = this.BUTTON_STATES.TRY_AGAIN
+          this.actionForButton = this.getNominatimServerStatus
+          break
+        }
+        default: {
+          break
+        }
+      }
+
+      this.isActionButtonVisible = true
+
     }
   },
+  
   computed: {
 
     hasCorrectPermissions() {
@@ -85,7 +124,7 @@ export default defineComponent({
       console.log(`Background result: ${perms.background}`)
     },
 
-    async requestPerms() : Promise<void> {
+    async requestPerms(e: MouseEvent) : Promise<void> {
       this.permStatus = await Perimeter.checkPermissions()
 
       if(this.permStatus.foreground != "granted")
@@ -144,11 +183,20 @@ export default defineComponent({
       this.mapCenter = this.presentLocat
       this.shouldShowUserMarker = true
       this.mapZoom = 12.5
+    },
+
+    async getNominatimServerStatus() { 
+      fetch(this.NOMINATIM_API.STATUS).then((r) => {
+        if(!(r.status === 200)) {
+          this.APP_STATE = this.APP_STATES.NOMINATIM_UNAVAILABLE
+        }
+      })
     }
   },
 
   async created() {
     this.handlePermissions()
+    await SplashScreen.hide()
   },
   
   async mounted() {
@@ -157,6 +205,7 @@ export default defineComponent({
       console.log((data as FenceEvent).fences[0].name)
     })
 
+    this.getNominatimServerStatus()
   }
 })
 </script>
@@ -180,6 +229,10 @@ a {
 #fence-map { 
   width: 100%;
   height: max(55vh, 500px);
+}
+
+h1, h2, h3, h4, h5 {
+  margin: 0;
 }
 
 </style>
