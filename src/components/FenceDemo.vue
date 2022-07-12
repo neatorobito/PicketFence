@@ -6,8 +6,8 @@
         <l-marker :lat-lng="presentLocat" :visible="shouldShowUserMarker"></l-marker>
         <l-control-zoom position="bottomleft"></l-control-zoom>
       </l-map>
-      <div class="container" style="max-height: 30vh; z-index: 1; position: absolute; left: calc(50% - 50vw); top: 0; margin-top: 3rem;">
-        <places-search v-if="isPlacesServerReachable" style="overflow-y: scroll"></places-search>
+      <div class="container" style="max-height: 30vh; z-index: 1; position: absolute; top: 0; margin-top: 3rem;">
+        <places-search v-if="isPlacesServerReachable"></places-search>
       </div>
     </div>
     <div class="container flexbox col">

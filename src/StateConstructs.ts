@@ -13,6 +13,13 @@ export enum NamedStates {
     PLATFORM_ERROR
 }
 
+export interface BasicPlace {
+	id: number
+	name: string
+	lat: number
+	lng: number
+}
+
 export type PicketFenceState = {
     [key in NamedStates]: StateData
 }
