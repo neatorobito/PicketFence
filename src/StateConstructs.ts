@@ -32,7 +32,7 @@ export const StateDataResolver : PicketFenceState = {
     } as StateData,
 
     [NamedStates.READY_FOR_FENCE]: {
-        actionButtonText : '',
+        actionButtonText : 'Add fence',
         statusText: 'Ready to go',
         instructionsText : 'Search for an address above to get started' 
     } as StateData,

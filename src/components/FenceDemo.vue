@@ -1,13 +1,13 @@
 <template>
   <div class="flexbox col" style="height: 100%;">
     <div class="container" style="padding: 0;">
-      <l-map id="fence-map" :center="mapCenter" :zoom="mapZoom" :zoomAnimation=true :options="{zoomControl: false}" style="z-index: 0">
+      <l-map id="fence-map" ref="fenceMap" :center="mapCenter" :zoom="mapZoom" :zoomAnimation=true :options="{zoomControl: false}" style="z-index: 0">
         <l-tile-layer :url="TILE_LAYER" :attribution="MAPS_ATTRIBUTION"></l-tile-layer>
         <l-marker :lat-lng="presentLocat" :visible="shouldShowUserMarker"></l-marker>
         <l-control-zoom position="bottomleft"></l-control-zoom>
       </l-map>
-      <div class="container" style="height: auto; z-index: 1; position: absolute; left: calc(50% - 50vw); top: 0; margin-top: 3rem;">
-        <input type="text" id="input-text" placeholder="Find an address" />
+      <div class="container" style="max-height: 30vh; z-index: 1; position: absolute; left: calc(50% - 50vw); top: 0; margin-top: 3rem;">
+        <places-search v-if="isPlacesServerReachable" style="overflow-y: scroll"></places-search>
       </div>
     </div>
     <div class="container flexbox col">
@@ -27,9 +27,11 @@ import { Perimeter, Fence, FenceEvent, PerimeterEvent, TransitionType, LocationP
 import { Geolocation, Position } from '@capacitor/geolocation'
 import { SplashScreen } from '@capacitor/splash-screen'
 import { StateData, StateDataResolver, NamedStates } from '../StateConstructs';
+import { Device, DeviceInfo } from '@capacitor/device';
 
 import "leaflet/dist/leaflet.css"
 import { LMap, LTileLayer, LMarker, LControlZoom } from "@vue-leaflet/vue-leaflet"
+import PlacesSearch from './PlacesSearch.vue';
 
 export default defineComponent({
   name: 'FenceDemo',
@@ -37,8 +39,9 @@ export default defineComponent({
     LMap,
     LTileLayer,
     LMarker,
-    LControlZoom
-  },
+    LControlZoom,
+    PlacesSearch
+},
   data: () => {
     return {
       APP_STATE: NamedStates.BLANK,
@@ -57,6 +60,7 @@ export default defineComponent({
       shouldShowUserMarker: false,
       activeFences: Array<Fence>(),
       permStatus: new LocationPermissionStatus(),
+      deviceInfo: null as DeviceInfo | null
     }
   },
   watch: {
@@ -93,6 +97,9 @@ export default defineComponent({
           this.actionForButton = this.getNominatimServerStatus
           break
         }
+        case NamedStates.READY_FOR_FENCE: {
+          this.actionForButton = this.addNewFence
+        }
         default: {
           break
         }
@@ -105,6 +112,10 @@ export default defineComponent({
 
     hasCorrectPermissions() {
       return (this.$data['permStatus'].background === 'granted' && this.$data['permStatus'].foreground === 'granted')
+    },
+
+    isPlacesServerReachable() {
+      return this.APP_STATE !== NamedStates.NOMINATIM_UNAVAILABLE
     },
 
     presentLocat() {
@@ -129,6 +140,7 @@ export default defineComponent({
       if (this.permStatus.background != "granted") {
         this.permStatus = await Perimeter.requestBackgroundPermissions()
       }
+
     },
 
     addNewFence() {
@@ -180,14 +192,14 @@ export default defineComponent({
     },
 
     async getNominatimServerStatus() { 
-      fetch(this.NOMINATIM_API.STATUS).then((r) => {
-        if(!(r.status === 200)) {
-          this.APP_STATE = NamedStates.NOMINATIM_UNAVAILABLE
-        }
-        else {
-          this.handlePermissions()
-        }
-      })
+      let isServerAvailable = false
+      try {
+        let serverResponse = await fetch(this.NOMINATIM_API.STATUS)
+        if(serverResponse.ok) { isServerAvailable = true }
+      }
+      finally {
+        if(!isServerAvailable) { this.APP_STATE = NamedStates.NOMINATIM_UNAVAILABLE }
+      }
     }
   },
 
@@ -196,10 +208,13 @@ export default defineComponent({
   },
   
   async mounted() {
+    this.deviceInfo = await Device.getInfo()
 
-    Perimeter.addListener("FenceEvent", (data: PerimeterEvent) => { 
-      console.log((data as FenceEvent).fences[0].name)
-    })
+    if(this.deviceInfo?.platform !== "web") {
+      Perimeter.addListener("FenceEvent", (data: PerimeterEvent) => { 
+        console.log((data as FenceEvent).fences[0].name)
+      })
+    }
 
     this.getNominatimServerStatus()
   }
@@ -208,27 +223,10 @@ export default defineComponent({
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
-}
+
 #fence-map { 
   width: 100%;
   height: max(55vh, 500px);
-}
-
-h1, h2, h3, h4, h5 {
-  margin: 0;
 }
 
 </style>

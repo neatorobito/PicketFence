@@ -28,4 +28,12 @@ export default defineComponent({
   height: 100%;
 }
 
+a {
+  color: #42b983;
+}
+
+h1, h2, h3, h4, h5 {
+  margin: 0;
+}
+
 </style>
