@@ -3,11 +3,11 @@
     <div class="container" style="padding: 0;">
       <l-map id="fence-map" ref="fenceMap" :center="mapCenter" :zoom="mapZoom" :zoomAnimation=true :options="{zoomControl: false}" style="z-index: 0">
         <l-tile-layer :url="TILE_LAYER" :attribution="MAPS_ATTRIBUTION"></l-tile-layer>
-        <l-marker :lat-lng="presentLocat" :visible="shouldShowUserMarker"></l-marker>
+        <l-marker :lat-lng="markerLocat" :visible="markerLocat !== null"></l-marker>
         <l-control-zoom position="bottomleft"></l-control-zoom>
       </l-map>
       <div class="container" style="max-height: 30vh; z-index: 1; position: absolute; top: 0; margin-top: 3rem;">
-        <places-search v-if="isPlacesServerReachable"></places-search>
+        <places-search @placeClicked="handleSelectedPlace($event)" v-if="isPlacesServerReachable"></places-search>
       </div>
     </div>
     <div class="container flexbox col">
@@ -26,7 +26,7 @@ import { defineComponent } from 'vue'
 import { Perimeter, Fence, FenceEvent, PerimeterEvent, TransitionType, LocationPermissionStatus } from '@meld/perimeter'
 import { Geolocation, Position } from '@capacitor/geolocation'
 import { SplashScreen } from '@capacitor/splash-screen'
-import { StateData, StateDataResolver, NamedStates } from '../StateConstructs';
+import { StateData, StateDataResolver, NamedStates, BasicPlace } from '../StateConstructs';
 import { Device, DeviceInfo } from '@capacitor/device';
 
 import "leaflet/dist/leaflet.css"
@@ -54,10 +54,10 @@ export default defineComponent({
       actionButtonText: null as string | null,
       instructionsText: null as string | null,
       statusText: null as string | null,
-      lastLocat: null as Position | null,
+      lastUserLocat: null as Position | null,
+      markerLocat: null as number[] | null,
       mapZoom: 3,
       mapCenter: [47.6053581, -122.336566],
-      shouldShowUserMarker: false,
       activeFences: Array<Fence>(),
       permStatus: new LocationPermissionStatus(),
       deviceInfo: null as DeviceInfo | null
@@ -67,7 +67,7 @@ export default defineComponent({
     'permStatus' (_updatedPermissions) {
       if(this.hasCorrectPermissions)
       {
-        this.configureMap()
+        this.setMapToUser()
         this.APP_STATE = NamedStates.READY_FOR_FENCE
       }
       else
@@ -118,8 +118,8 @@ export default defineComponent({
       return this.APP_STATE !== NamedStates.NOMINATIM_UNAVAILABLE
     },
 
-    presentLocat() {
-      return this.$data.lastLocat === null ? [0,0] : [this.$data.lastLocat.coords.latitude, this.$data.lastLocat.coords.longitude]
+    presentUserLocat() {
+      return this.$data.lastUserLocat === null ? [0,0] : [this.$data.lastUserLocat.coords.latitude, this.$data.lastUserLocat.coords.longitude]
     }
 
   },
@@ -128,6 +128,13 @@ export default defineComponent({
       console.log(`Foreground result: ${perms.foreground}`)
       console.log(`Background result: ${perms.background}`)
     },
+
+    handleSelectedPlace(place : BasicPlace) { 
+      let selectedLocat = [ place.lat, place.lng ]
+      this.mapCenter = selectedLocat
+      this.markerLocat = selectedLocat
+      this.mapZoom = 13
+    }, 
 
     async requestPerms(e: MouseEvent) : Promise<void> {
       this.permStatus = await Perimeter.checkPermissions()
@@ -184,10 +191,9 @@ export default defineComponent({
       this.logPerms(this.permStatus)
     },
 
-    async configureMap() {
-      this.lastLocat = await Geolocation.getCurrentPosition()
-      this.mapCenter = this.presentLocat
-      this.shouldShowUserMarker = true
+    async setMapToUser() {
+      this.lastUserLocat = await Geolocation.getCurrentPosition()
+      this.mapCenter = this.presentUserLocat
       this.mapZoom = 12.5
     },
 

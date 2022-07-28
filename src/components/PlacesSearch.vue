@@ -1,7 +1,9 @@
 <template>
-    <input type="text" v-model.lazy="placeQuery" @change="onEdited" placeholder="Find an address" />
-    <div id="places-result-container" v-if="possiblePlaces.length > 0">
-	  <p class="place" v-for="place in possiblePlaces" @click="onPlaceClicked(place)">{{ place.label }}</p>
+    <div>
+      <input type="text" v-model="placeQuery" @keypress="handleKeyPress($event)" @change="" placeholder="🔍 Find an address" />
+      <div id="places-result-container" v-if="possiblePlaces.length > 0">
+        <p class="place" v-for="place in possiblePlaces" @click="handlePlaceClick(place)">{{ place.label }}</p>
+      </div>
     </div>
 </template>
 
@@ -19,43 +21,42 @@ export default defineComponent({
       placeQuery: "",
       possiblePlaces: new Array(),
       placesProvider: new OpenStreetMapProvider(),
-      placesInputWatcher: null as any
+      placesInputTimeout: null as any,
+      STANDARD_INPUT_TIMEOUT_MS: 750
     }
   },
 
   methods: {
   
-  	async onPlaceClicked(place: any) {
+  	async handlePlaceClick(place: any) {
   		const simplified = {} as BasicPlace
   		simplified.name = place.label
   		simplified.id = place.raw.osm_id
-  		simplified.lat = place.x
-  		simplified.lng = place.y
+  		simplified.lat = place.raw.lat
+  		simplified.lng = place.raw.lon
   		
-  		//this.placesInputWatcher() // Stop watching while change the query.
   		this.placeQuery = simplified.name
   		this.possiblePlaces = new Array()
-  		console.log(this.placesInputWatcher)
-  		//this.placesInputWatcher() // Resume watching
+      this.$emit('placeClicked', simplified )
    	},
-   	
-   	onEdited() {
-   		console.log("Edits were made")
-   	}
-  
+
+    async searchForPlace() {
+      this.possiblePlaces = new Array() 
+      this.possiblePlaces = await this.placesProvider.search({ query: this.placeQuery })
+    },
+
+    handleKeyPress(e : KeyboardEvent) {
+
+      if(this.placeQuery !== "") {
+        if(this.placesInputTimeout !== null) {
+          clearTimeout(this.placesInputTimeout)
+        }
+
+          let timeout = e.key === "Enter" ? 0 : this.STANDARD_INPUT_TIMEOUT_MS
+          this.placesInputTimeout = setTimeout(this.searchForPlace, timeout)
+        }
+      }
   },
-  
-  async created() {
-  
-  	this.placesInputWatcher = this.$watch('placeQuery', async (newQuery) => {
-  		this.possiblePlaces = await this.placesProvider.search({ query: newQuery })
-  		console.log("awaiting")
-  	})
-  	
-  },
-  
-  async mounted() {
-  }
 })
 </script>
 
