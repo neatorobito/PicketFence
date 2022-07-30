@@ -1,18 +1,17 @@
 <template>
   <div class="flexbox col" style="height: 100%;">
-    <div class="container" style="padding: 0;">
-      <l-map id="fence-map" ref="fenceMap" :center="mapCenter" :zoom="mapZoom" :zoomAnimation=true :options="{zoomControl: false}" style="z-index: 0">
+    <div class="container" style="padding: 0; flex: 1 1 60%;">
+      <l-map id="fence-map" ref="fenceMap" :center="mapCenter" :zoom="mapZoom" :zoomAnimation=true :options="{zoomControl: false, inertia: false}" style="z-index: 0">
         <l-tile-layer :url="TILE_LAYER" :attribution="MAPS_ATTRIBUTION"></l-tile-layer>
         <l-marker :lat-lng="markerLocat" :visible="markerLocat !== null"></l-marker>
         <l-control-zoom position="bottomleft"></l-control-zoom>
       </l-map>
-      <div class="container" style="max-height: 30vh; z-index: 1; position: absolute; top: 0; margin-top: 3rem;">
+      <div class="container" style="max-height: 30vh; height: initial; z-index: 1; position: absolute; top: 0; margin-top: 3rem;">
         <places-search @placeClicked="handleSelectedPlace($event)" v-if="isPlacesServerReachable"></places-search>
       </div>
     </div>
-    <div class="container flexbox col">
+    <div class="container flexbox col" style="flex: 1 1 40%;">
         <h1 style="margin-top: 0.5rem; margin-bottom: 0.5rem;">PicketFence</h1>
-        <p>This sample app demonstrates basic geofencing capabilities with Perimeter.</p>
         <p v-if="instructionsText"> {{ instructionsText }} </p>
         <button class="btn button-primary" v-if="actionButtonText" @click="actionForButton">{{ actionButtonText }}</button>
     </div>
@@ -22,7 +21,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { defineComponent, toRaw } from 'vue'
 import { Perimeter, Fence, FenceEvent, PerimeterEvent, TransitionType, LocationPermissionStatus } from '@meld/perimeter'
 import { Geolocation, Position } from '@capacitor/geolocation'
 import { SplashScreen } from '@capacitor/splash-screen'
@@ -56,8 +55,9 @@ export default defineComponent({
       statusText: null as string | null,
       lastUserLocat: null as Position | null,
       markerLocat: null as number[] | null,
-      mapZoom: 3,
-      mapCenter: [47.6053581, -122.336566],
+      selectedPlace: null as BasicPlace | null,
+      mapZoom: 4,
+      mapCenter: [38.6251, -90.1868],
       activeFences: Array<Fence>(),
       permStatus: new LocationPermissionStatus(),
       deviceInfo: null as DeviceInfo | null
@@ -67,7 +67,7 @@ export default defineComponent({
     'permStatus' (_updatedPermissions) {
       if(this.hasCorrectPermissions)
       {
-        this.setMapToUser()
+        // this.setMapToUser()
         this.APP_STATE = NamedStates.READY_FOR_FENCE
       }
       else
@@ -130,10 +130,17 @@ export default defineComponent({
     },
 
     handleSelectedPlace(place : BasicPlace) { 
-      let selectedLocat = [ place.lat, place.lng ]
-      this.mapCenter = selectedLocat
-      this.markerLocat = selectedLocat
-      this.mapZoom = 13
+
+      // Convert this from a Proxy
+      this.selectedPlace = toRaw(place)
+
+      if(this.APP_STATE === NamedStates.READY_FOR_FENCE) {
+        this.actionButtonText = "Add Fence"
+        this.instructionsText = "Click the button to begin monitoring for this address." 
+      }
+
+      this.markerLocat = [ this.selectedPlace.lat, this.selectedPlace.lng ]
+      this.mapCenter = this.markerLocat
     }, 
 
     async requestPerms(e: MouseEvent) : Promise<void> {
@@ -151,15 +158,20 @@ export default defineComponent({
     },
 
     addNewFence() {
+      
+      if(this.selectedPlace === null) {
+        // Set error state.
+        return
+      }
 
-      let extraData = "dooterino burgino"
+      let extraData = "Here is some extra data."
 
       let newFence : Fence = {
-        name : "Mark's Apartment",
-        uid : '123idguy',
+        name : "Place",
+        uid : this.selectedPlace.id.toString(),
         payload: extraData,
-        lat : 47.5982517,
-        lng : -122.302551,
+        lat : this.selectedPlace.lat,
+        lng : this.selectedPlace.lng,
         radius : 200,
         monitor : TransitionType.Enter
       }
@@ -169,7 +181,15 @@ export default defineComponent({
       })
       .catch((e) => {
         console.log(e)
+        // Go to error state.
+      }).finally(() => {
+        
+        let newStateData = StateDataResolver[NamedStates.READY_FOR_FENCE] as StateData
+
+        this.actionButtonText = ""
+        this.instructionsText = newStateData.instructionsText
       })
+
 
     },
 
@@ -204,7 +224,7 @@ export default defineComponent({
         if(serverResponse.ok) { isServerAvailable = true }
       }
       finally {
-        if(!isServerAvailable) { this.APP_STATE = NamedStates.NOMINATIM_UNAVAILABLE }
+        return isServerAvailable
       }
     }
   },
@@ -215,14 +235,22 @@ export default defineComponent({
   
   async mounted() {
     this.deviceInfo = await Device.getInfo()
+    let isServerAvailable = await this.getNominatimServerStatus()
 
     if(this.deviceInfo?.platform !== "web") {
+
       Perimeter.addListener("FenceEvent", (data: PerimeterEvent) => { 
         console.log((data as FenceEvent).fences[0].name)
       })
-    }
 
-    this.getNominatimServerStatus()
+      if(isServerAvailable) {
+        this.handlePermissions()
+      }
+      else {
+        this.APP_STATE = NamedStates.NOMINATIM_UNAVAILABLE
+      }
+
+    }
   }
 })
 </script>
@@ -232,7 +260,6 @@ export default defineComponent({
 
 #fence-map { 
   width: 100%;
-  height: max(55vh, 500px);
 }
 
 </style>

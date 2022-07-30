@@ -1,7 +1,7 @@
 <template>
     <div>
-      <input type="text" v-model="placeQuery" @keypress="handleKeyPress($event)" @change="" placeholder="🔍 Find an address" />
-      <div id="places-result-container" v-if="possiblePlaces.length > 0">
+      <input id="search-input" type="text" @focusin="handleSearchGainFocus" v-model="placeQuery" @keypress="handleSearchKeyPress($event)" @change="" placeholder="🔍 Find an address" />
+      <div id="places-result-container" v-if="areResultsVisible">
         <p class="place" v-for="place in possiblePlaces" @click="handlePlaceClick(place)">{{ place.label }}</p>
       </div>
     </div>
@@ -20,9 +20,10 @@ export default defineComponent({
     return {
       placeQuery: "",
       possiblePlaces: new Array(),
+      areResultsVisible: false,
       placesProvider: new OpenStreetMapProvider(),
       placesInputTimeout: null as any,
-      STANDARD_INPUT_TIMEOUT_MS: 750
+      STANDARD_INPUT_TIMEOUT_MS: 350
     }
   },
 
@@ -32,30 +33,47 @@ export default defineComponent({
   		const simplified = {} as BasicPlace
   		simplified.name = place.label
   		simplified.id = place.raw.osm_id
-  		simplified.lat = place.raw.lat
-  		simplified.lng = place.raw.lon
+  		simplified.lat = parseFloat(place.raw.lat)
+  		simplified.lng = parseFloat(place.raw.lon)
   		
   		this.placeQuery = simplified.name
-  		this.possiblePlaces = new Array()
-      this.$emit('placeClicked', simplified )
+      this.$emit('placeClicked', simplified)
+      this.areResultsVisible = false
    	},
 
     async searchForPlace() {
       this.possiblePlaces = new Array() 
-      this.possiblePlaces = await this.placesProvider.search({ query: this.placeQuery })
+      let places = await this.placesProvider.search({ query: this.placeQuery })
+
+      // Remove any duplicates at the top from OSM.
+      if(places[0].label === places[1].label) {
+        places.shift()
+      }
+
+      this.possiblePlaces = places
+
+      if(document.activeElement?.id === "search-input") {
+        this.areResultsVisible = true
+      }
     },
 
-    handleKeyPress(e : KeyboardEvent) {
+    handleSearchKeyPress(e : KeyboardEvent) {
 
       if(this.placeQuery !== "") {
         if(this.placesInputTimeout !== null) {
           clearTimeout(this.placesInputTimeout)
         }
-
           let timeout = e.key === "Enter" ? 0 : this.STANDARD_INPUT_TIMEOUT_MS
           this.placesInputTimeout = setTimeout(this.searchForPlace, timeout)
         }
+    },
+
+    handleSearchGainFocus() {
+      if(this.possiblePlaces.length > 0 && this.placeQuery !== "") {
+        this.areResultsVisible = true
       }
+    }
+
   },
 })
 </script>

@@ -29,19 +29,19 @@ export const StateDataResolver : PicketFenceState = {
     [NamedStates.BLANK]: {
         actionButtonText : '',
         statusText: '',
-        instructionsText : '' 
+        instructionsText : 'This sample app demonstrates basic geofencing capabilities with Perimeter.' 
     } as StateData,
 
     [NamedStates.NEEDS_PERMISSIONS]: {
         actionButtonText : 'Request Permissions',
         statusText: 'Waiting for permissions',
-        instructionsText : '' 
+        instructionsText : 'This sample app demonstrates basic geofencing capabilities with Perimeter.' 
     } as StateData,
 
     [NamedStates.READY_FOR_FENCE]: {
-        actionButtonText : 'Add fence',
+        actionButtonText : '',
         statusText: 'Ready to go',
-        instructionsText : 'Search for an address above to get started' 
+        instructionsText : 'Search for an address above to get started.' 
     } as StateData,
 
     [NamedStates.IDLE]: {
