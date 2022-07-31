@@ -1,21 +1,20 @@
 <template>
-  <div class="flexbox col" style="height: 100%;">
-    <div class="container" style="padding: 0; flex: 1 1 60%;">
-      <l-map id="fence-map" ref="fenceMap" :center="mapCenter" :zoom="mapZoom" :zoomAnimation=true :options="{zoomControl: false, inertia: false}" style="z-index: 0">
+  <div class="container flexbox col height-100 no-padding">
+    <div class="container no-padding" style="flex: 1 1 60%;">
+      <l-map id="fence-map" ref="fenceMap" @ready="handleMapReady()" :zoom="mapZoom" :zoomAnimation=true :options="{zoomControl: false}">
         <l-tile-layer :url="TILE_LAYER" :attribution="MAPS_ATTRIBUTION"></l-tile-layer>
         <l-marker :lat-lng="markerLocat" :visible="markerLocat !== null"></l-marker>
         <l-control-zoom position="bottomleft"></l-control-zoom>
       </l-map>
-      <div class="container" style="max-height: 30vh; height: initial; z-index: 1; position: absolute; top: 0; margin-top: 3rem;">
+      <div class="container absolute" id="search-container">
         <places-search @placeClicked="handleSelectedPlace($event)" v-if="isPlacesServerReachable"></places-search>
       </div>
     </div>
-    <div class="container flexbox col" style="flex: 1 1 40%;">
-        <h1 style="margin-top: 0.5rem; margin-bottom: 0.5rem;">PicketFence</h1>
+    <div class="container flexbox col padding-s" style="flex: 1 1 40%;">
+        <h1>PicketFence</h1>
         <p v-if="instructionsText"> {{ instructionsText }} </p>
         <button class="btn button-primary" v-if="actionButtonText" @click="actionForButton">{{ actionButtonText }}</button>
     </div>
-    <i id="global_status" v-if="statusText" class="color-info text-align-center position-bottom padding-s">Status: {{ statusText }}</i>
   </div>
 
 </template>
@@ -31,6 +30,7 @@ import { Device, DeviceInfo } from '@capacitor/device';
 import "leaflet/dist/leaflet.css"
 import { LMap, LTileLayer, LMarker, LControlZoom } from "@vue-leaflet/vue-leaflet"
 import PlacesSearch from './PlacesSearch.vue';
+import L from 'leaflet';
 
 export default defineComponent({
   name: 'FenceDemo',
@@ -52,12 +52,11 @@ export default defineComponent({
       actionForButton: ((payload: MouseEvent) => {}) as ((payload: MouseEvent) => void),
       actionButtonText: null as string | null,
       instructionsText: null as string | null,
-      statusText: null as string | null,
       lastUserLocat: null as Position | null,
       markerLocat: null as number[] | null,
       selectedPlace: null as BasicPlace | null,
-      mapZoom: 4,
-      mapCenter: [38.6251, -90.1868],
+      mapZoom: 1,
+      mapObj: null as any | null,
       activeFences: Array<Fence>(),
       permStatus: new LocationPermissionStatus(),
       deviceInfo: null as DeviceInfo | null
@@ -67,7 +66,7 @@ export default defineComponent({
     'permStatus' (_updatedPermissions) {
       if(this.hasCorrectPermissions)
       {
-        // this.setMapToUser()
+        this.setMapToUser()
         this.APP_STATE = NamedStates.READY_FOR_FENCE
       }
       else
@@ -80,13 +79,11 @@ export default defineComponent({
 
       this.actionButtonText = null;
       this.instructionsText = null;
-      this.statusText = null;
 
       let newStateData = StateDataResolver[newState] as StateData
 
       this.actionButtonText = newStateData.actionButtonText
       this.instructionsText = newStateData.instructionsText
-      this.statusText = newStateData.statusText
 
       switch (newState) {
         case NamedStates.NEEDS_PERMISSIONS: {
@@ -140,8 +137,12 @@ export default defineComponent({
       }
 
       this.markerLocat = [ this.selectedPlace.lat, this.selectedPlace.lng ]
-      this.mapCenter = this.markerLocat
+      this.mapObj.setView(this.markerLocat, 13)
     }, 
+
+    handleMapReady() {
+      this.mapObj = toRaw((this.$refs.fenceMap as any).leafletObject) // Look at this abomination.
+    },
 
     async requestPerms(e: MouseEvent) : Promise<void> {
       this.permStatus = await Perimeter.checkPermissions()
@@ -210,11 +211,10 @@ export default defineComponent({
       this.permStatus = await Perimeter.checkPermissions()
       this.logPerms(this.permStatus)
     },
-
+    
     async setMapToUser() {
       this.lastUserLocat = await Geolocation.getCurrentPosition()
-      this.mapCenter = this.presentUserLocat
-      this.mapZoom = 12.5
+      this.mapObj.setView(this.presentUserLocat, 11)
     },
 
     async getNominatimServerStatus() { 
@@ -260,6 +260,15 @@ export default defineComponent({
 
 #fence-map { 
   width: 100%;
+  z-index: 0;
+}
+
+#search-container {
+  max-height: 30vh;
+  height: initial;
+  z-index: 1;
+  top: 0;
+  margin-top: 3rem;
 }
 
 </style>

@@ -112,7 +112,7 @@ public class MyGeofenceReceiver extends PerimeterReceiver {
             JSObject fence = triggeredJSFences.get(0);
             notificationTitle = "Looks like you're near " + fence.getString("name");
             notificationContent = fence.getString("payload");
-            expandedNotificationContent = "Be sure to check out " + fence.getString("payload") + ". Tap to find out more about events here.";
+            expandedNotificationContent = "Be sure to check out " + fence.getString("payload") + ". Tap to find out more about this place.";
         }
         else if(triggeredJSFences.size() > 1)
         {
