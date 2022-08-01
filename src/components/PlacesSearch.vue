@@ -9,8 +9,8 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { OpenStreetMapProvider } from 'leaflet-geosearch';
-import { BasicPlace } from '../StateConstructs';
+import { OpenStreetMapProvider } from 'leaflet-geosearch'
+import { BasicPlace } from '../StateConstructs'
 
 export default defineComponent({
   name: 'PlacesSearch',
@@ -42,7 +42,7 @@ export default defineComponent({
    	},
 
     async searchForPlace() {
-      this.possiblePlaces = new Array() 
+      this.possiblePlaces = [] 
       let places = await this.placesProvider.search({ query: this.placeQuery })
 
       // Remove any duplicates at the top from OSM.

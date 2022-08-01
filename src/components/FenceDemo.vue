@@ -43,7 +43,7 @@ import { Device, DeviceInfo } from '@capacitor/device'
 
 import "leaflet/dist/leaflet.css"
 import { LMap, LTileLayer, LMarker, LControlZoom, LCircle } from "@vue-leaflet/vue-leaflet"
-import PlacesSearch from './PlacesSearch.vue';
+import PlacesSearch from './PlacesSearch.vue'
 import FenceCard from './FenceCard.vue'
 
 export default defineComponent({
