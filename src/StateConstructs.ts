@@ -14,7 +14,7 @@ export enum NamedStates {
 
 export interface BasicPlace {
 	id: number
-	name: string
+	address: string
 	lat: number
 	lng: number
 }
@@ -37,7 +37,7 @@ export const StateDataResolver : PicketFenceState = {
 
     [NamedStates.READY_FOR_FENCE]: {
         actionButtonText : '',
-        instructionsText : 'Use the search box above to look for an address.' 
+        instructionsText : 'Search for an address above to get started and replace the sample item below.' 
     } as StateData,
 
     [NamedStates.IDLE]: {

@@ -1,6 +1,6 @@
 <template>
   <div class="container flexbox col height-100 no-padding">
-    <div class="container no-padding" style="flex: 1 1 60%;">
+    <div class="container no-padding" style="flex: 0 1 60%;">
       <l-map id="fence-map" ref="fenceMap" @ready="handleMapReady()" :zoom="mapZoom" :zoomAnimation=true :options="{zoomControl: false}">
         <l-tile-layer :url="TILE_LAYER" :attribution="MAPS_ATTRIBUTION"></l-tile-layer>
         <template v-for="fence in activeFences">
@@ -13,14 +13,22 @@
         <places-search @placeClicked="handleSelectedPlace($event)" v-if="isPlacesServerReachable"></places-search>
       </div>
     </div>
-    <div class="container flexbox col padding-s" style="flex: 1 1 40%;">
-        <h1>{{ activeFences.length }} active {{ activeFences.length == 1 ? 'fence' : 'fences' }}</h1>
-        <p v-if="instructionsText"> {{ instructionsText }} </p>
-        <button class="btn button-primary" :disabled="isAreaAlreadyFenced" v-if="actionButtonText" @click="actionForButton">{{ actionButtonText }}</button>
-        <div class="">
           
+    <div class="container flexbox col padding-s" style="flex: 0 1 35%; overflow-y: auto">
+        <h1>{{ activeFences.length }} active {{ activeFences.length == 1 ? 'fence' : 'fences' }}</h1>
+        <p class="margin-vertical-s" v-if="instructionsText">{{ instructionsText }}</p>
+        <button class="btn button-primary" :disabled="isAreaAlreadyFenced" v-if="actionButtonText" @click="actionForButton">{{ actionButtonText }}</button>
+
+        <div :class="`flexbox col ${activeFences.length === 0 ? 'border' : ''}`" :style="activeFences.length === 0 ? 'border-style: dashed;' : ''">
+          <div v-if="activeFences.length === 0" class="flexbox col">
+            <fence-card></fence-card>
+          </div>
+          <template v-else v-for="fence in activeFences">
+            <fence-card :name="fence.name" :address="fence.payload" :radius="fence.radius" :uid="fence.uid" @deleteClicked="handleDeletedFence($event)"></fence-card>
+          </template>
         </div>
     </div>
+    <p class="no-margin text-align-center position-bottom">{{ new Date().getFullYear() }} © Made by Mark | Icons by <a href="https://creativemarket.com/BomSymbols">BomSymbols</a></p>
   </div>
 
 </template>
@@ -35,7 +43,8 @@ import { Device, DeviceInfo } from '@capacitor/device'
 
 import "leaflet/dist/leaflet.css"
 import { LMap, LTileLayer, LMarker, LControlZoom, LCircle } from "@vue-leaflet/vue-leaflet"
-import PlacesSearch from './PlacesSearch.vue'
+import PlacesSearch from './PlacesSearch.vue';
+import FenceCard from './FenceCard.vue'
 
 export default defineComponent({
   name: 'FenceDemo',
@@ -45,7 +54,8 @@ export default defineComponent({
     LMarker,
     LControlZoom,
     LCircle,
-    PlacesSearch
+    PlacesSearch,
+    FenceCard
 },
   data: () => {
     return {
@@ -61,7 +71,7 @@ export default defineComponent({
       lastUserLocat: null as Position | null,
       markerLocat: null as number[] | null,
       selectedPlace: null as BasicPlace | null,
-      mapZoom: 1,
+      mapZoom: 2,
       mapObj: null as any | null,
       activeFences: Array<Fence>(),
       permStatus: new LocationPermissionStatus(),
@@ -149,7 +159,11 @@ export default defineComponent({
 
       this.markerLocat = [ this.selectedPlace.lat, this.selectedPlace.lng ]
       this.mapObj.setView(this.markerLocat, 13)
-    }, 
+    },
+
+    handleDeletedFence(uid : string) {
+      this.removeOldFence(uid)
+    },
 
     handleMapReady() {
       this.mapObj = toRaw((this.$refs.fenceMap as any).leafletObject) // Look at this abomination.
@@ -176,12 +190,10 @@ export default defineComponent({
         return
       }
 
-      let extraData = "Here is some extra data."
-
       let newFence : Fence = {
-        name : "Place",
+        name : "Place " + this.activeFences.length + 1,
         uid : this.selectedPlace.id.toString(),
-        payload: extraData,
+        payload: this.selectedPlace.address, // This is actually the address from Open Street Maps.
         lat : this.selectedPlace.lat,
         lng : this.selectedPlace.lng,
         radius : 200,
