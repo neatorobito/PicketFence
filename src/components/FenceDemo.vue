@@ -11,7 +11,7 @@
       </div>
     </div>
     <div class="container flexbox col padding-s" style="flex: 1 1 40%;">
-        <h1>PicketFence</h1>
+        <h1>{{ activeFences.length }} active {{ activeFences.length == 1 ? 'fence' : 'fences' }}</h1>
         <p v-if="instructionsText"> {{ instructionsText }} </p>
         <button class="btn button-primary" v-if="actionButtonText" @click="actionForButton">{{ actionButtonText }}</button>
     </div>
@@ -24,13 +24,13 @@ import { defineComponent, toRaw } from 'vue'
 import { Perimeter, Fence, FenceEvent, PerimeterEvent, TransitionType, LocationPermissionStatus } from '@meld/perimeter'
 import { Geolocation, Position } from '@capacitor/geolocation'
 import { SplashScreen } from '@capacitor/splash-screen'
-import { StateData, StateDataResolver, NamedStates, BasicPlace } from '../StateConstructs';
-import { Device, DeviceInfo } from '@capacitor/device';
+import { StateData, StateDataResolver, NamedStates, BasicPlace } from '../StateConstructs'
+import { Device, DeviceInfo } from '@capacitor/device'
 
 import "leaflet/dist/leaflet.css"
 import { LMap, LTileLayer, LMarker, LControlZoom } from "@vue-leaflet/vue-leaflet"
-import PlacesSearch from './PlacesSearch.vue';
-import L from 'leaflet';
+import PlacesSearch from './PlacesSearch.vue'
+import L from 'leaflet'
 
 export default defineComponent({
   name: 'FenceDemo',
@@ -77,8 +77,8 @@ export default defineComponent({
 
     'APP_STATE' (newState) {
 
-      this.actionButtonText = null;
-      this.instructionsText = null;
+      this.actionButtonText = null
+      this.instructionsText = null
 
       let newStateData = StateDataResolver[newState] as StateData
 
