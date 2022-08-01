@@ -31,12 +31,12 @@ export default defineComponent({
   
   	async handlePlaceClick(place: any) {
   		const simplified = {} as BasicPlace
-  		simplified.name = place.label
+  		simplified.address = place.label
   		simplified.id = place.raw.osm_id
   		simplified.lat = parseFloat(place.raw.lat)
   		simplified.lng = parseFloat(place.raw.lon)
   		
-  		this.placeQuery = simplified.name
+  		this.placeQuery = simplified.address
       this.$emit('placeClicked', simplified)
       this.areResultsVisible = false
    	},
