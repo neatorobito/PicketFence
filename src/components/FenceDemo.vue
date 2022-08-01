@@ -3,6 +3,9 @@
     <div class="container no-padding" style="flex: 1 1 60%;">
       <l-map id="fence-map" ref="fenceMap" @ready="handleMapReady()" :zoom="mapZoom" :zoomAnimation=true :options="{zoomControl: false}">
         <l-tile-layer :url="TILE_LAYER" :attribution="MAPS_ATTRIBUTION"></l-tile-layer>
+        <template v-for="fence in activeFences">
+          <l-circle color="green" :latLng="[ fence.lat, fence.lng ]" :radius="fence.radius"></l-circle>
+        </template>
         <l-marker :lat-lng="markerLocat" :visible="markerLocat !== null"></l-marker>
         <l-control-zoom position="bottomleft"></l-control-zoom>
       </l-map>
@@ -13,7 +16,10 @@
     <div class="container flexbox col padding-s" style="flex: 1 1 40%;">
         <h1>{{ activeFences.length }} active {{ activeFences.length == 1 ? 'fence' : 'fences' }}</h1>
         <p v-if="instructionsText"> {{ instructionsText }} </p>
-        <button class="btn button-primary" v-if="actionButtonText" @click="actionForButton">{{ actionButtonText }}</button>
+        <button class="btn button-primary" :disabled="isAreaAlreadyFenced" v-if="actionButtonText" @click="actionForButton">{{ actionButtonText }}</button>
+        <div class="">
+          
+        </div>
     </div>
   </div>
 
@@ -28,9 +34,8 @@ import { StateData, StateDataResolver, NamedStates, BasicPlace } from '../StateC
 import { Device, DeviceInfo } from '@capacitor/device'
 
 import "leaflet/dist/leaflet.css"
-import { LMap, LTileLayer, LMarker, LControlZoom } from "@vue-leaflet/vue-leaflet"
+import { LMap, LTileLayer, LMarker, LControlZoom, LCircle } from "@vue-leaflet/vue-leaflet"
 import PlacesSearch from './PlacesSearch.vue'
-import L from 'leaflet'
 
 export default defineComponent({
   name: 'FenceDemo',
@@ -39,6 +44,7 @@ export default defineComponent({
     LTileLayer,
     LMarker,
     LControlZoom,
+    LCircle,
     PlacesSearch
 },
   data: () => {
@@ -117,6 +123,11 @@ export default defineComponent({
 
     presentUserLocat() {
       return this.$data.lastUserLocat === null ? [0,0] : [this.$data.lastUserLocat.coords.latitude, this.$data.lastUserLocat.coords.longitude]
+    },
+
+    isAreaAlreadyFenced() {
+      return (this.selectedPlace != null &&
+              this.activeFences.filter(fence => fence.uid === this.selectedPlace?.id.toString()).length > 1)
     }
 
   },
@@ -133,7 +144,7 @@ export default defineComponent({
 
       if(this.APP_STATE === NamedStates.READY_FOR_FENCE) {
         this.actionButtonText = "Add Fence"
-        this.instructionsText = "Click the button to begin monitoring for this address." 
+        this.instructionsText = "Click the button to begin monitoring for this address. A notification will be sent when this device enters within 200 meters of this address." 
       }
 
       this.markerLocat = [ this.selectedPlace.lat, this.selectedPlace.lng ]

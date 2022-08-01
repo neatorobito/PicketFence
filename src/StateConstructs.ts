@@ -37,7 +37,7 @@ export const StateDataResolver : PicketFenceState = {
 
     [NamedStates.READY_FOR_FENCE]: {
         actionButtonText : '',
-        instructionsText : 'Search for an address above to get started.' 
+        instructionsText : 'Use the search box above to look for an address.' 
     } as StateData,
 
     [NamedStates.IDLE]: {
