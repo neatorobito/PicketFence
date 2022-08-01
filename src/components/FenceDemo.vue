@@ -1,6 +1,6 @@
 <template>
   <div class="container flexbox col height-100 no-padding">
-    <div class="container no-padding" style="flex: 0 1 60%;">
+    <div class="container no-padding" style="flex: 1 1 60%;">
       <l-map id="fence-map" ref="fenceMap" @ready="handleMapReady()" :zoom="mapZoom" :zoomAnimation=true :options="{zoomControl: false}">
         <l-tile-layer :url="TILE_LAYER" :attribution="MAPS_ATTRIBUTION"></l-tile-layer>
         <template v-for="fence in activeFences">
@@ -14,27 +14,29 @@
       </div>
     </div>
           
-    <div class="container flexbox col padding-s" style="flex: 0 1 35%; overflow-y: auto">
-        <h1>{{ activeFences.length }} active {{ activeFences.length == 1 ? 'fence' : 'fences' }}</h1>
-        <p class="margin-vertical-s" v-if="instructionsText">{{ instructionsText }}</p>
-        <button class="btn button-primary" :disabled="isAreaAlreadyFenced" v-if="actionButtonText" @click="actionForButton">{{ actionButtonText }}</button>
+    <div class="container flexbox col padding-s" style="flex: 1 1 40%; overflow-y: auto">
+        <div class="margin-bottom-s">
+          <h1 class="no-margin">{{ activeFences.length }} active {{ activeFences.length == 1 ? 'fence' : 'fences' }}</h1>
+          <p class="no-margin" v-if="statusText">{{ statusText }}</p>
+        </div>
+        <button class="button margin-bottom-m" v-if="actionButtonText" @click="actionForButton">{{ actionButtonText }}</button>
 
-        <div :class="`flexbox col ${activeFences.length === 0 ? 'border' : ''}`" :style="activeFences.length === 0 ? 'border-style: dashed;' : ''">
+        <div v-if="isReady" :class="`flexbox col ${activeFences.length === 0 ? 'border' : ''}`" :style="activeFences.length === 0 ? 'border-style: dashed;' : ''">
           <div v-if="activeFences.length === 0" class="flexbox col">
-            <fence-card></fence-card>
+            <fence-card class="opacity-75"></fence-card>
           </div>
           <template v-else v-for="fence in activeFences">
             <fence-card :name="fence.name" :address="fence.payload" :radius="fence.radius" :uid="fence.uid" @deleteClicked="handleDeletedFence($event)"></fence-card>
           </template>
         </div>
     </div>
-    <p class="no-margin text-align-center position-bottom">{{ new Date().getFullYear() }} © Made by Mark | Icons by <a href="https://creativemarket.com/BomSymbols">BomSymbols</a></p>
+    <p class="no-margin text-align-center position-bottom padding-bottom-m">{{ new Date().getFullYear() }} © Made by Mark | Icons by <a href="https://creativemarket.com/BomSymbols">BomSymbols</a></p>
   </div>
 
 </template>
 
 <script lang="ts">
-import { defineComponent, toRaw } from 'vue'
+import { defineComponent, isReadonly, toRaw } from 'vue'
 import { Perimeter, Fence, FenceEvent, PerimeterEvent, TransitionType, LocationPermissionStatus } from '@meld/perimeter'
 import { Geolocation, Position } from '@capacitor/geolocation'
 import { SplashScreen } from '@capacitor/splash-screen'
@@ -67,8 +69,9 @@ export default defineComponent({
       },
       actionForButton: ((payload: MouseEvent) => {}) as ((payload: MouseEvent) => void),
       actionButtonText: null as string | null,
-      instructionsText: null as string | null,
+      statusText: null as string | null,
       lastUserLocat: null as Position | null,
+      lastPlatformError: null as any | null,
       markerLocat: null as number[] | null,
       selectedPlace: null as BasicPlace | null,
       mapZoom: 2,
@@ -83,26 +86,26 @@ export default defineComponent({
       if(this.hasCorrectPermissions)
       {
         this.setMapToUser()
-        this.APP_STATE = NamedStates.READY_FOR_FENCE
+        this.APP_STATE = NamedStates.IDLE
       }
       else
       {
-        this.APP_STATE = NamedStates.NEEDS_PERMISSIONS
+        this.APP_STATE = NamedStates.NEED_PERMISSIONS
       }
     },
 
     'APP_STATE' (newState) {
 
       this.actionButtonText = null
-      this.instructionsText = null
+      this.statusText = null
 
       let newStateData = StateDataResolver[newState] as StateData
 
       this.actionButtonText = newStateData.actionButtonText
-      this.instructionsText = newStateData.instructionsText
+      this.statusText = newStateData.statusText
 
       switch (newState) {
-        case NamedStates.NEEDS_PERMISSIONS: {
+        case NamedStates.NEED_PERMISSIONS: {
           this.actionForButton = this.requestPerms
           break
         }
@@ -110,14 +113,26 @@ export default defineComponent({
           this.actionForButton = this.getNominatimServerStatus
           break
         }
-        case NamedStates.READY_FOR_FENCE: {
+        case NamedStates.IDLE: {
           this.actionForButton = this.addNewFence
+          break
+        }
+        case NamedStates.FENCE_SUCCESS: {
+          this.actionForButton = () => { 
+            this.selectedPlace = null 
+            this.APP_STATE = NamedStates.IDLE
+          }
+          break
+        }
+        case NamedStates.PLATFORM_ERROR: {
+          this.actionForButton = this.continueAfterError
+          this.statusText = 'A platform error occured. ' + this.lastPlatformError.message
+          break
         }
         default: {
           break
         }
       }
-
     }
   },
   
@@ -135,9 +150,12 @@ export default defineComponent({
       return this.$data.lastUserLocat === null ? [0,0] : [this.$data.lastUserLocat.coords.latitude, this.$data.lastUserLocat.coords.longitude]
     },
 
-    isAreaAlreadyFenced() {
-      return (this.selectedPlace != null &&
-              this.activeFences.filter(fence => fence.uid === this.selectedPlace?.id.toString()).length > 1)
+    isReady() {
+      return this.APP_STATE === NamedStates.IDLE
+    },
+
+    hasErrorOccured() {
+      return this.APP_STATE === NamedStates.NOMINATIM_UNAVAILABLE || NamedStates.PLATFORM_ERROR
     }
 
   },
@@ -152,9 +170,10 @@ export default defineComponent({
       // Convert this from a Proxy
       this.selectedPlace = toRaw(place)
 
-      if(this.APP_STATE === NamedStates.READY_FOR_FENCE) {
+      if(this.APP_STATE === NamedStates.IDLE) {
+        // This should probably be another state.
         this.actionButtonText = "Add Fence"
-        this.instructionsText = "Click the button to begin monitoring for this address. A notification will be sent when this device enters within 200 meters of this address." 
+        this.statusText = "Click the button to begin monitoring for this address. A notification will be sent when this device enters within 200 meters of this address." 
       }
 
       this.markerLocat = [ this.selectedPlace.lat, this.selectedPlace.lng ]
@@ -180,7 +199,6 @@ export default defineComponent({
       if (this.permStatus.background != "granted") {
         this.permStatus = await Perimeter.requestBackgroundPermissions()
       }
-
     },
 
     addNewFence() {
@@ -191,7 +209,7 @@ export default defineComponent({
       }
 
       let newFence : Fence = {
-        name : "Place " + this.activeFences.length + 1,
+        name : "Place " + (this.activeFences.length + 1),
         uid : this.selectedPlace.id.toString(),
         payload: this.selectedPlace.address, // This is actually the address from Open Street Maps.
         lat : this.selectedPlace.lat,
@@ -202,19 +220,12 @@ export default defineComponent({
 
       Perimeter.addFence(newFence).then(() => {
         this.activeFences.push(newFence)
+        this.APP_STATE = NamedStates.FENCE_SUCCESS
       })
       .catch((e) => {
-        console.log(e)
-        // Go to error state.
-      }).finally(() => {
-        
-        let newStateData = StateDataResolver[NamedStates.READY_FOR_FENCE] as StateData
-
-        this.actionButtonText = ""
-        this.instructionsText = newStateData.instructionsText
+        this.lastPlatformError = e
+        this.APP_STATE = NamedStates.PLATFORM_ERROR
       })
-
-
     },
 
     removeOldFence(uid: string) {
@@ -228,6 +239,13 @@ export default defineComponent({
     
     removeAllFences() {
       Perimeter.removeAllFences()
+    },
+
+    continueAfterError() {
+      this.lastPlatformError = null
+      this.APP_STATE = NamedStates.BLANK
+      
+      this.handlePermissions()
     },
 
     async handlePermissions() {

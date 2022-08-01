@@ -7,7 +7,7 @@
           <div class="padding-s width-100">
             <b>{{ name }}</b>
             <br/>
-            <p class="no-margin color-grey-400">123 Sesame Street, New York, USA</p>
+            <p class="no-margin color-grey-400">{{ address }}</p>
             <p class="no-margin">{{ uid === 'sample' ? 'This is a sample item.' : `Triggers upon entering ${radius} within meters of this area.`}}</p> 
             <div class="margin-top-s button-group button-group-block">
               <!-- <button class="button button-primary">Edit</button> -->
