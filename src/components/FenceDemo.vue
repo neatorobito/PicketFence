@@ -1,6 +1,6 @@
 <template>
   <div class="container flexbox col height-100 no-padding">
-    <div class="container no-padding" style="flex: 1 1 60%;">
+    <div class="container no-padding" style="flex: 0 1 60%;">
       <l-map id="fence-map" ref="fenceMap" @ready="handleMapReady()" :zoom="mapZoom" :zoomAnimation=true :options="{zoomControl: false}">
         <l-tile-layer :url="TILE_LAYER" :attribution="MAPS_ATTRIBUTION"></l-tile-layer>
         <template v-for="fence in activeFences">
@@ -14,7 +14,7 @@
       </div>
     </div>
           
-    <div class="container flexbox col padding-s" style="flex: 1 1 40%; overflow-y: auto">
+    <div class="container flexbox col padding-s" style="flex: 0 1 35%; overflow-y: auto">
         <div class="margin-bottom-s">
           <h1 class="no-margin">{{ activeFences.length }} active {{ activeFences.length == 1 ? 'fence' : 'fences' }}</h1>
           <p class="no-margin" v-if="statusText">{{ statusText }}</p>
@@ -30,7 +30,7 @@
           </template>
         </div>
     </div>
-    <p class="no-margin text-align-center position-bottom padding-bottom-m">{{ new Date().getFullYear() }} © Made by Mark | Icons by <a href="https://creativemarket.com/BomSymbols">BomSymbols</a></p>
+    <p class="no-margin text-align-center position-bottom">{{ new Date().getFullYear() }} © Made by Mark | Icons by <a href="https://creativemarket.com/BomSymbols">BomSymbols</a></p>
   </div>
 
 </template>

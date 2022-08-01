@@ -31,7 +31,7 @@ export default defineComponent({
   
   	async handlePlaceClick(place: any) {
   		const simplified = {} as BasicPlace
-  		simplified.address = place.label
+  		simplified.address = place.raw.display_name
   		simplified.id = place.raw.osm_id
   		simplified.lat = parseFloat(place.raw.lat)
   		simplified.lng = parseFloat(place.raw.lon)
