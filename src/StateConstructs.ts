@@ -32,7 +32,7 @@ export const StateDataResolver : PicketFenceState = {
 
     [NamedStates.NEED_PERMISSIONS]: {
         actionButtonText : 'Request permissions',
-        statusText : 'Waiting for permissions'
+        statusText : 'Please allow the app to show notifications and access your location.'
     } as StateData,
 
     [NamedStates.FENCE_SUCCESS]: {

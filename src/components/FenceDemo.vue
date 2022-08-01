@@ -1,6 +1,6 @@
 <template>
   <div class="container flexbox col height-100 no-padding">
-    <div class="container no-padding" style="flex: 0 1 60%;">
+    <div class="container no-padding" style="flex: 1 1 60%;">
       <l-map id="fence-map" ref="fenceMap" @ready="handleMapReady()" :zoom="mapZoom" :zoomAnimation=true :options="{zoomControl: false}">
         <l-tile-layer :url="TILE_LAYER" :attribution="MAPS_ATTRIBUTION"></l-tile-layer>
         <template v-for="fence in activeFences">
@@ -14,7 +14,7 @@
       </div>
     </div>
           
-    <div class="container flexbox col padding-s" style="flex: 0 1 35%; overflow-y: auto">
+    <div class="container flexbox col padding-s" style="flex: 1 1 34%; overflow-y: auto">
         <div class="margin-bottom-s">
           <h1 class="no-margin">{{ activeFences.length }} active {{ activeFences.length == 1 ? 'fence' : 'fences' }}</h1>
           <p class="no-margin" v-if="statusText">{{ statusText }}</p>
@@ -30,18 +30,21 @@
           </template>
         </div>
     </div>
-    <p class="no-margin text-align-center position-bottom">{{ new Date().getFullYear() }} © Made by Mark | Icons by <a href="https://creativemarket.com/BomSymbols">BomSymbols</a></p>
+    <div class="flexbox col" style="flex: 0 0 6%;">
+      <p class="centered text-align-center">{{ new Date().getFullYear() }} © Made by Mark | Icons by <a href="https://creativemarket.com/BomSymbols">BomSymbols</a></p>
+    </div>
   </div>
 
 </template>
 
 <script lang="ts">
-import { defineComponent, isReadonly, toRaw } from 'vue'
+import { defineComponent, toRaw } from 'vue'
 import { Perimeter, Fence, FenceEvent, PerimeterEvent, TransitionType, LocationPermissionStatus } from '@meld/perimeter'
 import { Geolocation, Position } from '@capacitor/geolocation'
 import { SplashScreen } from '@capacitor/splash-screen'
 import { StateData, StateDataResolver, NamedStates, BasicPlace } from '../StateConstructs'
 import { Device, DeviceInfo } from '@capacitor/device'
+import { LocalNotifications } from '@capacitor/local-notifications'
 
 import "leaflet/dist/leaflet.css"
 import { LMap, LTileLayer, LMarker, LControlZoom, LCircle } from "@vue-leaflet/vue-leaflet"
@@ -139,7 +142,7 @@ export default defineComponent({
   computed: {
 
     hasCorrectPermissions() {
-      return (this.$data['permStatus'].background === 'granted' && this.$data['permStatus'].foreground === 'granted')
+      return (this.$data.permStatus.background === 'granted' && this.$data.permStatus.foreground === 'granted')
     },
 
     isPlacesServerReachable() {
@@ -189,7 +192,12 @@ export default defineComponent({
     },
 
     async requestPerms(e: MouseEvent) : Promise<void> {
+      let notifPerms = await LocalNotifications.checkPermissions();
       this.permStatus = await Perimeter.checkPermissions()
+
+      if(notifPerms.display !== 'granted') {
+        await LocalNotifications.requestPermissions()
+      }
 
       if(this.permStatus.foreground != "granted")
       {
@@ -281,7 +289,12 @@ export default defineComponent({
     if(this.deviceInfo?.platform !== "web") {
 
       Perimeter.addListener("FenceEvent", (data: PerimeterEvent) => { 
-        console.log((data as FenceEvent).fences[0].name)
+        let fence = (data as FenceEvent).fences[0]
+        LocalNotifications.schedule({ 
+          notifications : [{ 
+            id: parseInt(fence.uid),
+            title: 'Geofencing Event',
+            body : `Did you ${ fence.monitor === TransitionType.Enter ? 'enter' : 'exit' } ${ fence.name }?`}]})
       })
 
       if(isServerAvailable) {
