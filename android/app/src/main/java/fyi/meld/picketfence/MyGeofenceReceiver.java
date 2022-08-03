@@ -39,9 +39,7 @@ public class MyGeofenceReceiver extends PerimeterReceiver {
 
     @Override
     public void onError(Context context, int errorCode, String errorMessage) {
-        JSObject errorInfo = new JSObject();
-        errorInfo.put("message", errorMessage);
-        errorInfo.put("code", errorCode);
+
     }
 
     public void handleEntrance(Context context, ArrayList<JSObject> triggeredJSFences, long triggerTime) {
@@ -116,7 +114,7 @@ public class MyGeofenceReceiver extends PerimeterReceiver {
         }
         else if(triggeredJSFences.size() > 1)
         {
-            notificationTitle = "Looks like you're near a few different buildings.";
+            notificationTitle = "Looks like you're near a few different places.";
             notificationContent = "There's a lot going on.";
             String listOfFences = "";
 

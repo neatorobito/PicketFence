@@ -39,13 +39,19 @@
 
 <script lang="ts">
 import { defineComponent, toRaw } from 'vue'
-import { Perimeter, Fence, FenceEvent, PerimeterEvent, TransitionType, LocationPermissionStatus } from '@meld/perimeter'
+import { 
+  Perimeter, 
+  Fence,
+  FenceEvent,
+  LocationPermissionStatus,
+  PlatformEvent,
+  iOSPlatformEvents,
+  TransitionTypes } from '@meld/perimeter'
 import { Geolocation, Position } from '@capacitor/geolocation'
 import { SplashScreen } from '@capacitor/splash-screen'
 import { StateData, StateDataResolver, NamedStates, BasicPlace } from '../StateConstructs'
 import { Device, DeviceInfo } from '@capacitor/device'
 import { LocalNotifications } from '@capacitor/local-notifications'
-
 import "leaflet/dist/leaflet.css"
 import { LMap, LTileLayer, LMarker, LControlZoom, LCircle } from "@vue-leaflet/vue-leaflet"
 import PlacesSearch from './PlacesSearch.vue'
@@ -223,7 +229,7 @@ export default defineComponent({
         lat : this.selectedPlace.lat,
         lng : this.selectedPlace.lng,
         radius : 200,
-        monitor : TransitionType.Enter
+        monitor : TransitionTypes.Enter
       }
 
       Perimeter.addFence(newFence).then(() => {
@@ -256,6 +262,13 @@ export default defineComponent({
       this.handlePermissions()
     },
 
+    handleiOSReturnToForeground(event: PlatformEvent) {
+      if(event.data !== null) {
+        let activeFencesBeforePaused = event.data as Array<Fence>
+        this.activeFences = activeFencesBeforePaused
+      }
+    },
+
     async handlePermissions() {
       this.permStatus = await Perimeter.checkPermissions()
       this.logPerms(this.permStatus)
@@ -276,6 +289,7 @@ export default defineComponent({
         return isServerAvailable
       }
     }
+    
   },
 
   async created() {
@@ -288,17 +302,38 @@ export default defineComponent({
 
     if(this.deviceInfo?.platform !== "web") {
 
-      Perimeter.addListener("FenceEvent", (data: PerimeterEvent) => { 
-        let fence = (data as FenceEvent).fences[0]
+      Perimeter.addListener("FenceEvent", (event: any) => { 
+        let fenceEvent = (event as FenceEvent)
+        let fenceNames = "";
+        for(let fence of fenceEvent.fences) {
+          fenceNames += fence.name + ' '
+        }
+
+        console.log("Here is raw event")
+        console.log(fenceEvent)
+
         LocalNotifications.schedule({ 
           notifications : [{ 
-            id: parseInt(fence.uid),
+            id: 123,
             title: 'Geofencing Event',
-            body : `Did you ${ fence.monitor === TransitionType.Enter ? 'enter' : 'exit' } ${ fence.name }?`}]})
+            body : `Did you ${ fenceEvent.transitionType === TransitionTypes.Enter ? 'enter' : 'exit' } ${ fenceNames.trimEnd() }?`}]})
+      })
+
+      Perimeter.addListener("PlatformEvent", async (event: any) => {
+        let platformEvent = (event as PlatformEvent)
+        switch(platformEvent.code) {
+          case iOSPlatformEvents.FOREGROUND_WITH_EXISTING_FENCES:
+            this.handleiOSReturnToForeground(platformEvent)
+            break
+          default:
+            break
+        }
+
       })
 
       if(isServerAvailable) {
         this.handlePermissions()
+        console.log(await Perimeter.getActiveFences())
       }
       else {
         this.APP_STATE = NamedStates.NOMINATIM_UNAVAILABLE
