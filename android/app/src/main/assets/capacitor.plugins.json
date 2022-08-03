@@ -16,7 +16,7 @@
 		"classpath": "com.capacitorjs.plugins.splashscreen.SplashScreenPlugin"
 	},
 	{
-		"pkg": "@meld/perimeter",
-		"classpath": "fyi.meld.perimeter.PerimeterPlugin"
+		"pkg": "@karm/perimeter",
+		"classpath": "fyi.karm.perimeter.PerimeterPlugin"
 	}
 ]

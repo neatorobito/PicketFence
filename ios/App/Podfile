@@ -13,7 +13,7 @@ def capacitor_pods
   pod 'CapacitorGeolocation', :path => '../../node_modules/@capacitor/geolocation'
   pod 'CapacitorLocalNotifications', :path => '../../node_modules/@capacitor/local-notifications'
   pod 'CapacitorSplashScreen', :path => '../../node_modules/@capacitor/splash-screen'
-  pod 'MeldPerimeter', :path => '../../../Perimeter'
+  pod 'KarmPerimeter', :path => '../../../Perimeter'
 end
 
 target 'App' do

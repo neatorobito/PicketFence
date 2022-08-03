@@ -2,8 +2,8 @@
 <resources>
     <string name="app_name">picketfence</string>
     <string name="title_activity_main">picketfence</string>
-    <string name="package_name">fyi.meld.picketfence</string>
-    <string name="custom_url_scheme">fyi.meld.picketfence</string>
+    <string name="package_name">fyi.karm.picketfence</string>
+    <string name="custom_url_scheme">fyi.karm.picketfence</string>
     <string name="rationale_diag_message"></string>
     <string name="rationale_diag_title"></string>
 </resources>

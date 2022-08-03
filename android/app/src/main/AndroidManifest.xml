@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="fyi.meld.picketfence">
+    package="fyi.karm.picketfence">
 
     <!-- Geolocation API (Add these to your AndroidManifest.xml) -->
     <uses-feature android:name="android.hardware.location.gps" />
@@ -22,13 +22,13 @@
 <!--            android:exported="false"/>-->
 
         <receiver
-            android:name="fyi.meld.perimeter.SimplePerimeterReceiver"
+            android:name="fyi.karm.perimeter.SimplePerimeterReceiver"
             android:enabled="true"
             android:exported="false"/>
 
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
-            android:name="fyi.meld.picketfence.MainActivity"
+            android:name="fyi.karm.picketfence.MainActivity"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBarLaunch"
             android:launchMode="singleTask">
@@ -42,7 +42,7 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="app" android:host="fyi.meld.perimeter" />
+                <data android:scheme="app" android:host="fyi.karm.perimeter" />
             </intent-filter>
 
 

@@ -1,4 +1,4 @@
-package fyi.meld.picketfence;
+package fyi.karm.picketfence;
 
 import android.Manifest;
 import android.content.DialogInterface;
@@ -18,8 +18,8 @@ import com.getcapacitor.PluginHandle;
 
 import java.util.ArrayList;
 
-import fyi.meld.perimeter.Constants;
-import fyi.meld.perimeter.PerimeterPlugin;
+import fyi.karm.perimeter.Constants;
+import fyi.karm.perimeter.PerimeterPlugin;
 
 public class MainActivity extends BridgeActivity {
 

@@ -1,4 +1,4 @@
-package fyi.meld.picketfence;
+package fyi.karm.picketfence;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -18,7 +18,7 @@ import org.json.JSONArray;
 
 import java.util.ArrayList;
 
-import fyi.meld.perimeter.PerimeterReceiver;
+import fyi.karm.perimeter.PerimeterReceiver;
 
 public class MyGeofenceReceiver extends PerimeterReceiver {
 

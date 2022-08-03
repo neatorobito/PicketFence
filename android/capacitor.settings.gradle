@@ -14,5 +14,5 @@ project(':capacitor-local-notifications').projectDir = new File('../node_modules
 include ':capacitor-splash-screen'
 project(':capacitor-splash-screen').projectDir = new File('../node_modules/@capacitor/splash-screen/android')
 
-include ':meld-perimeter'
-project(':meld-perimeter').projectDir = new File('../../Perimeter/android')
+include ':karm-perimeter'
+project(':karm-perimeter').projectDir = new File('../../Perimeter/android')

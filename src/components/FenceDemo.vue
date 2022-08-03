@@ -46,7 +46,7 @@ import {
   LocationPermissionStatus,
   PlatformEvent,
   iOSPlatformEvents,
-  TransitionTypes } from '@meld/perimeter'
+  TransitionTypes } from '@karm/perimeter'
 import { Geolocation, Position } from '@capacitor/geolocation'
 import { SplashScreen } from '@capacitor/splash-screen'
 import { StateData, StateDataResolver, NamedStates, BasicPlace } from '../StateConstructs'

@@ -1,5 +1,5 @@
 {
-	"appId": "fyi.meld.picketfence",
+	"appId": "fyi.karm.picketfence",
 	"appName": "picketfence",
 	"webDir": "dist",
 	"bundledWebRuntime": false,
