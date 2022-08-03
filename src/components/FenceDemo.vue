@@ -198,7 +198,7 @@ export default defineComponent({
     },
 
     async requestPerms(e: MouseEvent) : Promise<void> {
-      let notifPerms = await LocalNotifications.checkPermissions();
+      let notifPerms = await LocalNotifications.checkPermissions()
       this.permStatus = await Perimeter.checkPermissions()
 
       if(notifPerms.display !== 'granted') {
@@ -304,7 +304,7 @@ export default defineComponent({
 
       Perimeter.addListener("FenceEvent", (event: any) => { 
         let fenceEvent = (event as FenceEvent)
-        let fenceNames = "";
+        let fenceNames = ""
         for(let fence of fenceEvent.fences) {
           fenceNames += fence.name + ' '
         }
