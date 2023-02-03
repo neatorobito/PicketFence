@@ -15,4 +15,4 @@ include ':capacitor-splash-screen'
 project(':capacitor-splash-screen').projectDir = new File('../node_modules/@capacitor/splash-screen/android')
 
 include ':karm-perimeter'
-project(':karm-perimeter').projectDir = new File('../../Perimeter/android')
+project(':karm-perimeter').projectDir = new File('../node_modules/@karm/perimeter/android')

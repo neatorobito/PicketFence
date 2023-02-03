@@ -1,7 +1,7 @@
 <template>
   <div class="container flexbox col height-100 no-padding">
     <div class="container no-padding" style="flex: 1 1 60%;">
-      <l-map id="fence-map" ref="fenceMap" @ready="handleMapReady()" :zoom="mapZoom" :zoomAnimation=true :options="{zoomControl: false}">
+      <l-map id="fence-map" ref="fenceMap" @ready="handleMapReady()" :zoom="mapZoom" :zoomAnimation=true :min-zoom=2 :max-zoom=13 :options="{zoomControl: false}">
         <l-tile-layer :url="TILE_LAYER" :attribution="MAPS_ATTRIBUTION"></l-tile-layer>
         <template v-for="fence in activeFences">
           <l-circle color="green" :latLng="[ fence.lat, fence.lng ]" :radius="fence.radius"></l-circle>
@@ -180,7 +180,6 @@ export default defineComponent({
       this.selectedPlace = toRaw(place)
 
       if(this.APP_STATE === NamedStates.IDLE) {
-        // This should probably be another state.
         this.actionButtonText = "Add Fence"
         this.statusText = "Click the button to begin monitoring for this address. A notification will be sent when this device enters within 200 meters of this address." 
       }
@@ -194,7 +193,7 @@ export default defineComponent({
     },
 
     handleMapReady() {
-      this.mapObj = toRaw((this.$refs.fenceMap as any).leafletObject) // Look at this abomination.
+      this.mapObj = toRaw((this.$refs.fenceMap as any).leafletObject) // Look at this abomination
     },
 
     async requestPerms(e: MouseEvent) : Promise<void> {
@@ -225,7 +224,7 @@ export default defineComponent({
       let newFence : Fence = {
         name : "Place " + (this.activeFences.length + 1),
         uid : this.selectedPlace.id.toString(),
-        payload: this.selectedPlace.address, // This is actually the address from Open Street Maps.
+        payload: this.selectedPlace.address, // This is the actual address from Open Street Maps.
         lat : this.selectedPlace.lat,
         lng : this.selectedPlace.lng,
         radius : 200,
@@ -309,7 +308,6 @@ export default defineComponent({
           fenceNames += fence.name + ' '
         }
 
-        console.log("Here is raw event")
         console.log(fenceEvent)
 
         LocalNotifications.schedule({ 
