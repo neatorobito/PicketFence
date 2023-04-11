@@ -24,7 +24,7 @@
         <receiver
             android:name="fyi.karm.perimeter.SimplePerimeterReceiver"
             android:enabled="true"
-            android:exported="false"/>
+            android:exported="true"/>
 
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
