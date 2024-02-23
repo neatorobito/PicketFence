@@ -147,23 +147,23 @@ export default defineComponent({
   
   computed: {
 
-    hasCorrectPermissions() {
+    hasCorrectPermissions(): boolean {
       return (this.$data.permStatus.background === 'granted' && this.$data.permStatus.foreground === 'granted')
     },
 
-    isPlacesServerReachable() {
+    isPlacesServerReachable(): boolean {
       return this.APP_STATE !== NamedStates.NOMINATIM_UNAVAILABLE
     },
 
-    presentUserLocat() {
+    presentUserLocat(): number[] {
       return this.$data.lastUserLocat === null ? [0,0] : [this.$data.lastUserLocat.coords.latitude, this.$data.lastUserLocat.coords.longitude]
     },
 
-    isReady() {
+    isReady(): boolean {
       return this.APP_STATE === NamedStates.IDLE
     },
 
-    hasErrorOccured() {
+    hasErrorOccured(): boolean | NamedStates {
       return this.APP_STATE === NamedStates.NOMINATIM_UNAVAILABLE || NamedStates.PLATFORM_ERROR
     }
 
@@ -296,8 +296,8 @@ export default defineComponent({
   },
   
   async mounted() {
-    this.deviceInfo = await Device.getInfo()
-    let isServerAvailable = await this.getNominatimServerStatus()
+    this.deviceInfo = await Device.getInfo() // Get iOS/Android/or web
+    let isServerAvailable = await this.getNominatimServerStatus() // Lets us turn GPS coordinates into a physical address. lat, lng -> 123 Sesame Street Pl.
 
     if(this.deviceInfo?.platform !== "web") {
 
@@ -331,7 +331,6 @@ export default defineComponent({
 
       if(isServerAvailable) {
         this.handlePermissions()
-        console.log(await Perimeter.getActiveFences())
       }
       else {
         this.APP_STATE = NamedStates.NOMINATIM_UNAVAILABLE
