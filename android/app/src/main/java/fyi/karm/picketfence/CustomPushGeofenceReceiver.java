@@ -20,14 +20,14 @@ import java.util.ArrayList;
 
 import fyi.karm.perimeter.PerimeterReceiver;
 
-public class MyGeofenceReceiver extends PerimeterReceiver {
+public class CustomPushGeofenceReceiver extends PerimeterReceiver {
 
     private NotificationManager notificationManager;
     private NotificationChannel notificationChannel;
 
     @Override
     public void onFenceTriggered(Context context, ArrayList<JSObject> triggeredJSFences, long triggerTime, int transitionType) {
-        if(transitionType == 1)
+        if(transitionType == fyi.karm.perimeter.Constants.MONITOR_ENTER)
         {
             handleEntrance(context, triggeredJSFences, triggerTime);
         }
@@ -191,7 +191,9 @@ public class MyGeofenceReceiver extends PerimeterReceiver {
     private void sendFenceEventNotification(Context context, Notification notif) {
 
         if(notificationManager == null) {
-            notificationManager = context.getSystemService(NotificationManager.class);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                notificationManager = context.getSystemService(NotificationManager.class);
+            }
         }
 
         if(notificationChannel == null) {

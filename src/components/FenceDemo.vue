@@ -46,7 +46,8 @@ import {
   LocationPermissionStatus,
   PlatformEvent,
   iOSPlatformEvents,
-  TransitionTypes } from '@karm/perimeter'
+  TransitionTypes, 
+AndroidPlatformEvents} from '@karm/perimeter'
 import { Geolocation, Position } from '@capacitor/geolocation'
 import { SplashScreen } from '@capacitor/splash-screen'
 import { StateData, StateDataResolver, NamedStates, BasicPlace } from '../StateConstructs'
@@ -181,7 +182,7 @@ export default defineComponent({
 
       if(this.APP_STATE === NamedStates.IDLE) {
         this.actionButtonText = "Add Fence"
-        this.statusText = "Click the button to begin monitoring for this address. A notification will be sent when this device enters within 200 meters of this address." 
+        this.statusText = "Click the button to begin monitoring for this address. A notification will be sent when this device enters within 300 meters of this address." 
       }
 
       this.markerLocat = [ this.selectedPlace.lat, this.selectedPlace.lng ]
@@ -217,7 +218,7 @@ export default defineComponent({
     addNewFence() {
       
       if(this.selectedPlace === null) {
-        // Set error state.
+        //TODO Set error state.
         return
       }
 
@@ -227,7 +228,7 @@ export default defineComponent({
         payload: this.selectedPlace.address, // This is the actual address from Open Street Maps.
         lat : this.selectedPlace.lat,
         lng : this.selectedPlace.lng,
-        radius : 200,
+        radius : 300,
         monitor : TransitionTypes.Enter
       }
 
@@ -261,7 +262,7 @@ export default defineComponent({
       this.handlePermissions()
     },
 
-    handleiOSReturnToForeground(event: PlatformEvent) {
+    handleReturnToForeground(event: PlatformEvent) {
       if(event.data !== null) {
         let activeFencesBeforePaused = event.data as Array<Fence>
         this.activeFences = activeFencesBeforePaused
@@ -307,21 +308,15 @@ export default defineComponent({
         for(let fence of fenceEvent.fences) {
           fenceNames += fence.name + ' '
         }
-
         console.log(fenceEvent)
-
-        LocalNotifications.schedule({ 
-          notifications : [{ 
-            id: 123,
-            title: 'Geofencing Event',
-            body : `Did you ${ fenceEvent.transitionType === TransitionTypes.Enter ? 'enter' : 'exit' } ${ fenceNames.trimEnd() }?`}]})
       })
 
       Perimeter.addListener("PlatformEvent", async (event: any) => {
         let platformEvent = (event as PlatformEvent)
         switch(platformEvent.code) {
+          case AndroidPlatformEvents.FOREGROUND_WITH_EXISTING_FENCES:
           case iOSPlatformEvents.FOREGROUND_WITH_EXISTING_FENCES:
-            this.handleiOSReturnToForeground(platformEvent)
+            this.handleReturnToForeground(platformEvent)
             break
           default:
             break

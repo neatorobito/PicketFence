@@ -34,7 +34,7 @@ export default defineComponent({
     },
     radius: {
       type: Number,
-      default: 200
+      default: 300
     },
     uid: {
       type: String,
