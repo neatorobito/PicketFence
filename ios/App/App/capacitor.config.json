@@ -19,5 +19,12 @@
 			"layoutName": "launch_screen",
 			"useDialog": true
 		}
-	}
+	},
+	"packageClassList": [
+		"DevicePlugin",
+		"GeolocationPlugin",
+		"LocalNotificationsPlugin",
+		"SplashScreenPlugin",
+		"PerimeterPlugin"
+	]
 }

@@ -26,8 +26,6 @@
 	<true/>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Perimeter requires your location in the background to check if you're nearby buildings.</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Perimeter requires your location in the background to check if you're nearby buildings.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Perimeter requires your current location to check if you're nearby buildings.</string>
 	<key>UIBackgroundModes</key>

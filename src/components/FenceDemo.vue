@@ -308,7 +308,12 @@ export default defineComponent({
         for(let fence of fenceEvent.fences) {
           fenceNames += fence.name + ' '
         }
-        console.log(fenceEvent)
+        
+        LocalNotifications.schedule({ 
+          notifications : [{ 
+            id: 123,
+            title: 'Geofencing Event',
+            body : `Did you ${ fenceEvent.transitionType === TransitionTypes.Enter ? 'enter' : 'exit' } ${ fenceNames.trimEnd() }?`}]})        
       })
 
       Perimeter.addListener("PlatformEvent", async (event: any) => {

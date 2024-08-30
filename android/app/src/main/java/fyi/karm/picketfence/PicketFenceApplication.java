@@ -14,7 +14,7 @@ public class PicketFenceApplication extends Application implements PerimeterAppl
 
     @Override
     public Class<? extends PerimeterReceiver> GetGeoFenceReceiverClass() {
-        return CustomPushGeofenceReceiver.class;
+        return SimpleGeofenceReceiver.class;
     }
 
 }

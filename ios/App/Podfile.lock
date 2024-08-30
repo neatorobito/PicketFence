@@ -1,16 +1,16 @@
 PODS:
-  - Capacitor (5.7.0):
+  - Capacitor (6.1.2):
     - CapacitorCordova
-  - CapacitorCordova (5.7.0)
-  - CapacitorDevice (5.0.7):
+  - CapacitorCordova (6.1.2)
+  - CapacitorDevice (6.0.1):
     - Capacitor
-  - CapacitorGeolocation (5.0.7):
+  - CapacitorGeolocation (6.0.1):
     - Capacitor
-  - CapacitorLocalNotifications (5.0.7):
+  - CapacitorLocalNotifications (6.1.0):
     - Capacitor
-  - CapacitorSplashScreen (5.0.7):
+  - CapacitorSplashScreen (6.0.2):
     - Capacitor
-  - KarmPerimeter (0.9.5):
+  - KarmPerimeter (1.0.0):
     - Capacitor
 
 DEPENDENCIES:
@@ -39,13 +39,13 @@ EXTERNAL SOURCES:
     :path: "../../../Perimeter"
 
 SPEC CHECKSUMS:
-  Capacitor: fc155ee2ee45a2093d716f13cf5aa5a865e2d85a
-  CapacitorCordova: e825fce1a2e14e4b5730641c7e098dccf74397b7
-  CapacitorDevice: fc91bdb484dc0e70755e9b621cd557afe642613a
-  CapacitorGeolocation: 918a292459542bcce98433f9e7c7909f8c72838a
-  CapacitorLocalNotifications: c58afadd159f6bc540ef9b3cbdbc82510a2bf112
-  CapacitorSplashScreen: dd3de3f3644710fa2a697cfb91ec262eece4d242
-  KarmPerimeter: 209ef25184fd4566736d737c3633b34152d68bd8
+  Capacitor: 679f9673fdf30597493a6362a5d5bf233d46abc2
+  CapacitorCordova: f48c89f96c319101cd2f0ce8a2b7449b5fb8b3dd
+  CapacitorDevice: 7097a1deb4224b77fd13a6e60a355d0062a5d772
+  CapacitorGeolocation: 39dca51d755f08ed1d43e51be55291a402cdc64f
+  CapacitorLocalNotifications: 6bac9e948b2b8852506c6d74abb2cde140250f86
+  CapacitorSplashScreen: 250df9ef8014fac5c7c1fd231f0f8b1d8f0b5624
+  KarmPerimeter: 390eda3d22766c8ee4dd300441fa301470077aa4
 
 PODFILE CHECKSUM: 37399a1068cf5a7a54d726ac965ac140889f82ec
 
