@@ -1,28 +1,32 @@
 # picketfence
 
-## Project setup
+## Sample App
+
+### Clone the plugin and this sample app repo
+```bash
+git clone https://github.com/neatorobito/PicketFence
+git clone https://github.com/neatorobito/Perimeter
 ```
+
+### Build and install the plugin locally
+```bash
+cd Perimeter
 npm install
-```
-
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
-
-### Compiles and minifies for production
-```
 npm run build
+
+cd ../PicketFence
+npm install ../Perimeter
 ```
 
-If you hit a build error related to SSL, try using a legacy OpenSSL provider by setting the environment variable below. Note this is a temporary workaround and you may need to switch to a different version of Node.
+### Build and run the sample app
+```bash
+npm install
+npm run build
 
-`export NODE_OPTIONS=--openssl-legacy-provider`
+#If you hit a build error related to SSL, try using a legacy OpenSSL provider by setting the environment variable below. Note this is a temporary workaround and you may need to switch to a different version of Node.
 
-### Lints and fixes files
+# export NODE_OPTIONS=--openssl-legacy-provider
+
+npx cap sync
+npx cap open ios #or android
 ```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
